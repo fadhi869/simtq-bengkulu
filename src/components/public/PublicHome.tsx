@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { CABANG_DAN_GOLONGAN, DAFTAR_KAFILAH, MIMBAR_LIST } from '../../data/constants';
 import { LiveParticipantCard3D } from './LiveParticipantCard3D';
+import { SacredTypographyBurst } from './SacredTypographyBurst';
 import {
   Radio,
   Filter,
@@ -39,10 +40,6 @@ export const PublicHome: React.FC = () => {
     );
   });
 
-  // Staggered words for Feature 4: "Musabaqah Tilawatil Qur'an Provinsi Bengkulu"
-  const line1Words = ['Musabaqah', 'Tilawatil', "Qur'an"];
-  const line2Words = ['Provinsi', 'Bengkulu'];
-
   return (
     <div className="space-y-24 pb-24">
       {/* 1. HERO SECTION WITH QUANTUM ZERO-GRAVITY STAGGERED REVEAL & INTERACTIVE BUTTONS */}
@@ -61,46 +58,8 @@ export const PublicHome: React.FC = () => {
           <span>MTQ Ke-XXXVI Tingkat Provinsi Bengkulu</span>
         </motion.div>
 
-        {/* FEATURE 4: STAGGERED REVEAL ON LOAD WITH BLUR FILTER (10px -> 0px) */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.12]">
-          {/* Line 1: Musabaqah Tilawatil Qur'an */}
-          <div className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4">
-            {line1Words.map((word, index) => (
-              <motion.span
-                key={word}
-                initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{
-                  duration: 0.8,
-                  delay: index * 0.12,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="inline-block"
-              >
-                {word}
-              </motion.span>
-            ))}
-          </div>
-
-          {/* Line 2: Provinsi Bengkulu (with refined gradient) */}
-          <div className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4 mt-1">
-            {line2Words.map((word, index) => (
-              <motion.span
-                key={word}
-                initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.36 + index * 0.14,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="inline-block bg-gradient-to-r from-zinc-100 via-zinc-300 to-[#00FF87] bg-clip-text text-transparent"
-              >
-                {word}
-              </motion.span>
-            ))}
-          </div>
-        </h1>
+        {/* SACRED PARTICLE TYPOGRAPHY BURST: Letter-by-letter splitting, 3D Hijaiyah burst on hover, 60fps GC */}
+        <SacredTypographyBurst />
 
         {/* Subtitle with soft fade in */}
         <motion.p
