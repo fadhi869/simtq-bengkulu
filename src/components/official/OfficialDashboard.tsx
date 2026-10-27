@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DAFTAR_KAFILAH } from '../../data/constants';
+import { DAFTAR_KAFILAH, CABANG_DAN_GOLONGAN } from '../../data/constants';
 import {
   Users,
   UserPlus,
@@ -12,15 +12,23 @@ import {
   Trash2,
   Sparkles,
   Lock,
+  Mail,
 } from 'lucide-react';
 
 export const OfficialDashboard: React.FC = () => {
-  const { calonPesertaList, addCalonPeserta, deleteCalonPeserta, setRole } = useApp();
+  const { calonPesertaList, addCalonPeserta, deleteCalonPeserta, setRole, currentUser } = useApp();
 
-  const [selectedKafilah, setSelectedKafilah] = useState<string>('Kota Bengkulu');
+  const [selectedKafilah, setSelectedKafilah] = useState<string>(
+    currentUser?.asalKafilah || 'Kota Bengkulu'
+  );
   const [namaLengkap, setNamaLengkap] = useState<string>('');
+  const [emailPeserta, setEmailPeserta] = useState<string>('');
+  const [selectedCabang, setSelectedCabang] = useState<string>("Tilawah Al-Qur'an");
+  const [selectedGolongan, setSelectedGolongan] = useState<string>('Remaja Putra');
   const [nik, setNik] = useState<string>('');
-  const [namaOfficial, setNamaOfficial] = useState<string>('Drs. H. Ahmad Zarkasi, M.Pd');
+  const [namaOfficial, setNamaOfficial] = useState<string>(
+    currentUser?.displayName || 'Drs. H. Ahmad Zarkasi, M.Pd'
+  );
   const [nomorKontakOfficial, setNomorKontakOfficial] = useState<string>('081273948201');
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -30,25 +38,28 @@ export const OfficialDashboard: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!namaLengkap.trim() || !nik.trim()) {
+    if (!namaLengkap.trim() || !emailPeserta.trim()) {
       setNotification({
         type: 'error',
-        message: 'Nama Lengkap dan NIK Calon Peserta wajib diisi!',
+        message: 'Nama Lengkap dan Email Google Calon Peserta wajib diisi!',
       });
       return;
     }
 
-    if (nik.trim().length !== 16 || !/^\d+$/.test(nik.trim())) {
+    if (!emailPeserta.includes('@')) {
       setNotification({
         type: 'error',
-        message: 'NIK harus terdiri dari tepat 16 digit angka!',
+        message: 'Format Email Calon Peserta tidak valid (harus memiliki domain @gmail.com atau sejenisnya).',
       });
       return;
     }
 
     const result = addCalonPeserta({
       namaLengkap: namaLengkap.trim(),
-      nik: nik.trim(),
+      emailPeserta: emailPeserta.trim().toLowerCase(),
+      cabang: selectedCabang,
+      golongan: selectedGolongan,
+      nik: nik.trim() || undefined,
       asalKafilah: selectedKafilah,
       namaOfficial: namaOfficial.trim() || `Official ${selectedKafilah}`,
       nomorKontakOfficial: nomorKontakOfficial.trim() || '081234567890',
@@ -60,6 +71,7 @@ export const OfficialDashboard: React.FC = () => {
         message: result.message,
       });
       setNamaLengkap('');
+      setEmailPeserta('');
       setNik('');
     } else {
       setNotification({
@@ -189,16 +201,75 @@ export const OfficialDashboard: React.FC = () => {
 
             <div>
               <label className="block text-xs text-zinc-300 font-medium mb-1.5">
-                NIK Calon Peserta (16 Digit) *
+                Email Aktif Peserta (Akun Google) *
+              </label>
+              <div className="relative">
+                <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="email"
+                  value={emailPeserta}
+                  onChange={(e) => setEmailPeserta(e.target.value)}
+                  placeholder="peserta.mtq@gmail.com"
+                  className="w-full ag-input pl-9 font-mono text-xs"
+                  required
+                />
+              </div>
+              <span className="text-[10px] text-zinc-400 mt-1 block">
+                Digunakan untuk login peserta melalui <strong>Google Auth</strong>.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-zinc-300 font-medium mb-1.5">
+                  Cabang Lomba
+                </label>
+                <select
+                  value={selectedCabang}
+                  onChange={(e) => {
+                    setSelectedCabang(e.target.value);
+                    const gols = CABANG_DAN_GOLONGAN[e.target.value] || [];
+                    if (gols.length > 0) setSelectedGolongan(gols[0]);
+                  }}
+                  className="w-full ag-input text-xs"
+                >
+                  {Object.keys(CABANG_DAN_GOLONGAN).map((c) => (
+                    <option key={c} value={c} className="bg-[#12151e]">
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-zinc-300 font-medium mb-1.5">
+                  Golongan Lomba
+                </label>
+                <select
+                  value={selectedGolongan}
+                  onChange={(e) => setSelectedGolongan(e.target.value)}
+                  className="w-full ag-input text-xs"
+                >
+                  {(CABANG_DAN_GOLONGAN[selectedCabang] || []).map((g) => (
+                    <option key={g} value={g} className="bg-[#12151e]">
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-zinc-300 font-medium mb-1.5">
+                NIK Calon Peserta (16 Digit)
               </label>
               <input
                 type="text"
                 maxLength={16}
                 value={nik}
                 onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
-                placeholder="177101xxxxxxxxxx"
+                placeholder="177101xxxxxxxxxx (Opsional)"
                 className="w-full ag-input font-mono"
-                required
               />
               <span className="text-[10px] text-zinc-400 mt-1 block font-mono">
                 {nik.length}/16 digit terisi
@@ -231,18 +302,18 @@ export const OfficialDashboard: React.FC = () => {
             </div>
 
             <div className="p-3 bg-white/[0.02] border border-white/[0.08] rounded-xl text-[11px] text-zinc-400 flex items-start gap-2 leading-relaxed">
-              <Lock className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+              <Lock className="w-4 h-4 text-[#00FF87] shrink-0 mt-0.5" />
               <span>
-                <strong>Sistem Validasi Terkunci:</strong> Peserta hanya dapat membuka formulir jika namanya telah diinput di daftar rekomendasi kafilah ini.
+                <strong>Proteksi Google Auth:</strong> Peserta hanya dapat masuk jika email Google mereka telah didaftarkan di form ini.
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 px-4 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#00FF87] text-black font-semibold text-xs hover:bg-[#00FF87]/90 transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,135,0.25)]"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              Daftarkan Calon Peserta
+              Daftarkan Data Dasar Peserta
             </button>
           </form>
 
@@ -253,6 +324,7 @@ export const OfficialDashboard: React.FC = () => {
               onClick={() => {
                 const randomId = Math.floor(1000 + Math.random() * 9000);
                 setNamaLengkap(`Fauzi Al-Bengkulu ${randomId}`);
+                setEmailPeserta(`fauzi.${randomId}@gmail.com`);
                 setNik(`177101${randomId}000001`);
               }}
               className="w-full text-[11px] font-mono text-zinc-400 hover:text-white py-1.5 px-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] transition-colors flex items-center justify-center gap-1.5"
@@ -290,8 +362,9 @@ export const OfficialDashboard: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
                 <tr>
-                  <th className="py-2.5 px-3">Nama Calon</th>
-                  <th className="py-2.5 px-3">NIK</th>
+                  <th className="py-2.5 px-3">Nama & ID</th>
+                  <th className="py-2.5 px-3">Email Google</th>
+                  <th className="py-2.5 px-3">Cabang & Golongan</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3 text-right">Aksi</th>
                 </tr>
@@ -302,10 +375,18 @@ export const OfficialDashboard: React.FC = () => {
                     <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-3">
                         <div className="font-medium text-white">{item.namaLengkap}</div>
-                        <div className="text-[10px] font-mono text-zinc-400">{item.id}</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{item.id} • {item.nik || 'NIK -'}</div>
                       </td>
-                      <td className="py-3 px-3 font-mono text-zinc-400">
-                        {item.nik}
+                      <td className="py-3 px-3 font-mono text-zinc-300">
+                        {item.emailPeserta ? (
+                          <span className="text-[#00FF87]">{item.emailPeserta}</span>
+                        ) : (
+                          <span className="text-zinc-600">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-zinc-300">
+                        <div>{item.cabang}</div>
+                        <div className="text-[10px] font-mono text-zinc-500">{item.golongan}</div>
                       </td>
                       <td className="py-3 px-3">
                         {item.isRegistered ? (
@@ -314,7 +395,7 @@ export const OfficialDashboard: React.FC = () => {
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            Belum Registrasi
+                            Menunggu Google Auth
                           </span>
                         )}
                       </td>
@@ -322,15 +403,9 @@ export const OfficialDashboard: React.FC = () => {
                         {!item.isRegistered ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => setRole('peserta')}
-                              className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 underline"
-                            >
-                              Daftar →
-                            </button>
-                            <button
                               onClick={() => deleteCalonPeserta(item.id)}
                               className="text-zinc-500 hover:text-red-400 p-1"
-                              title="Hapus"
+                              title="Hapus Calon Peserta"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -343,7 +418,7 @@ export const OfficialDashboard: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-zinc-400 text-xs">
+                    <td colSpan={5} className="py-8 text-center text-zinc-400 text-xs">
                       Tidak ada calon peserta untuk {selectedKafilah}.
                     </td>
                   </tr>

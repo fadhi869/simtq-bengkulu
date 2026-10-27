@@ -6,7 +6,6 @@ import {
   Users,
   UserCheck,
   ShieldCheck,
-  Gavel,
   RotateCcw,
   Menu,
   X,
@@ -45,11 +44,6 @@ export const Navbar: React.FC = () => {
       id: 'admin',
       label: 'Admin Pusat',
       icon: <ShieldCheck className="w-3.5 h-3.5" />,
-    },
-    {
-      id: 'juri',
-      label: 'Dewan Hakim',
-      icon: <Gavel className="w-3.5 h-3.5" />,
     },
   ];
 
@@ -178,7 +172,6 @@ export const Navbar: React.FC = () => {
                   <option value="official">🏢 1. Official</option>
                   <option value="peserta">👤 2. Peserta</option>
                   <option value="admin">⚙️ 3. Admin</option>
-                  <option value="juri">⚖️ 4. Juri</option>
                 </select>
                 <ChevronDown className="w-3 h-3 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>

@@ -12,6 +12,12 @@ import {
   FileCheck,
   Eye,
   FileText,
+  Users,
+  UserPlus,
+  Trash2,
+  Lock,
+  KeyRound,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -21,9 +27,20 @@ export const AdminDashboard: React.FC = () => {
     updateVerifikasi,
     acakNomorUrutTampil,
     updateStatusTampil,
+    officialAccounts,
+    addOfficialAccount,
+    deleteOfficialAccount,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'rekap' | 'validasi' | 'acak' | 'status'>('rekap');
+  const [activeTab, setActiveTab] = useState<'rekap' | 'validasi' | 'acak' | 'status' | 'officials'>('rekap');
+
+  // Form State for Adding Official
+  const [newOfficialUsername, setNewOfficialUsername] = useState('');
+  const [newOfficialPassword, setNewOfficialPassword] = useState('');
+  const [newOfficialName, setNewOfficialName] = useState('');
+  const [newOfficialKafilah, setNewOfficialKafilah] = useState<string>(DAFTAR_KAFILAH[0]);
+  const [newOfficialContact, setNewOfficialContact] = useState('');
+  const [officialNotice, setOfficialNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [filterCabang, setFilterCabang] = useState<string>('');
   const [filterGolongan, setFilterGolongan] = useState<string>('');
@@ -70,6 +87,30 @@ export const AdminDashboard: React.FC = () => {
     }
     return true;
   });
+
+  const handleCreateOfficial = (e: React.FormEvent) => {
+    e.preventDefault();
+    setOfficialNotice(null);
+
+    const res = addOfficialAccount({
+      username: newOfficialUsername,
+      password: newOfficialPassword,
+      namaOfficial: newOfficialName,
+      asalKafilah: newOfficialKafilah,
+      nomorKontak: newOfficialContact,
+    });
+
+    if (res.success) {
+      setOfficialNotice({ type: 'success', message: res.message });
+      setNewOfficialUsername('');
+      setNewOfficialPassword('');
+      setNewOfficialName('');
+      setNewOfficialContact('');
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    } else {
+      setOfficialNotice({ type: 'error', message: res.message });
+    }
+  };
 
   const handleRunLottery = () => {
     setIsShuffling(true);
@@ -161,6 +202,18 @@ export const AdminDashboard: React.FC = () => {
         >
           <Radio className="w-3.5 h-3.5" />
           Live Status Mimbar
+        </button>
+
+        <button
+          onClick={() => setActiveTab('officials')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
+            activeTab === 'officials'
+              ? 'bg-[#00FF87] text-black font-semibold shadow-[0_0_12px_rgba(0,255,135,0.4)]'
+              : 'text-zinc-400 hover:text-white'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          Kelola Akun Official ({officialAccounts.length})
         </button>
       </div>
 
@@ -355,6 +408,185 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* TAB 5: MANAJEMEN AKUN OFFICIAL KAFILAH */}
+      {activeTab === 'officials' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="ag-card p-6 border border-white/10 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <span className="text-[10px] font-mono tracking-widest uppercase text-[#00FF87] block mb-1">
+                  OTORISASI KREDENSIAL OFFICIAL
+                </span>
+                <h3 className="text-lg font-bold text-white">
+                  Penerbitan Akun Official Kafilah Daerah
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Admin Pusat membuatkan data username, password, dan nama untuk Official Kafilah 10 Kabupaten/Kota se-Bengkulu.
+                </p>
+              </div>
+
+              <div className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 font-mono text-xs text-zinc-300">
+                Total Akun: <span className="text-[#00FF87] font-bold">{officialAccounts.length}</span>
+              </div>
+            </div>
+
+            {/* Notification alert */}
+            {officialNotice && (
+              <div
+                className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
+                  officialNotice.type === 'success'
+                    ? 'bg-[#00FF87]/15 border border-[#00FF87]/40 text-[#00FF87]'
+                    : 'bg-red-500/15 border border-red-500/40 text-red-400'
+                }`}
+              >
+                {officialNotice.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                ) : (
+                  <XCircle className="w-4 h-4 shrink-0" />
+                )}
+                <span>{officialNotice.message}</span>
+              </div>
+            )}
+
+            {/* Creation Form */}
+            <form onSubmit={handleCreateOfficial} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Username Official
+                </label>
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    value={newOfficialUsername}
+                    onChange={(e) => setNewOfficialUsername(e.target.value)}
+                    placeholder="official_seluma"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Password Login
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    value={newOfficialPassword}
+                    onChange={(e) => setNewOfficialPassword(e.target.value)}
+                    placeholder="seluma2026"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Nama Lengkap Official
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newOfficialName}
+                  onChange={(e) => setNewOfficialName(e.target.value)}
+                  placeholder="Drs. H. Mawardi"
+                  className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Kafilah Kabupaten/Kota
+                </label>
+                <select
+                  value={newOfficialKafilah}
+                  onChange={(e) => setNewOfficialKafilah(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#12151e] border border-white/10 text-xs text-white focus:outline-none focus:border-[#00FF87]/60"
+                >
+                  {DAFTAR_KAFILAH.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  className="w-full py-2 px-4 rounded-xl bg-[#00FF87] hover:bg-[#00FF87]/90 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,135,0.3)]"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Terbitkan Akun</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Table of Accounts */}
+          <div className="ag-card p-6 border border-white/10 overflow-hidden">
+            <h4 className="text-sm font-semibold text-white mb-3">
+              Daftar Kredensial Official Terdaftar di Database
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.08] text-zinc-400 font-mono text-[11px]">
+                    <th className="py-2.5 px-3">No</th>
+                    <th className="py-2.5 px-3">Username</th>
+                    <th className="py-2.5 px-3">Password</th>
+                    <th className="py-2.5 px-3">Nama Official</th>
+                    <th className="py-2.5 px-3">Kafilah Daerah</th>
+                    <th className="py-2.5 px-3">Kontak WA</th>
+                    <th className="py-2.5 px-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {officialAccounts.map((acc, idx) => (
+                    <tr key={acc.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3 font-mono text-zinc-500">{idx + 1}</td>
+                      <td className="py-3 px-3 font-mono font-medium text-[#00FF87]">
+                        {acc.username}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-zinc-300 bg-white/[0.02] rounded px-2">
+                        {acc.password}
+                      </td>
+                      <td className="py-3 px-3 font-medium text-white">{acc.namaOfficial}</td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 font-mono text-[10px] text-zinc-300">
+                          {acc.asalKafilah}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-zinc-400">{acc.nomorKontak}</td>
+                      <td className="py-3 px-3 text-right">
+                        {acc.username === 'official_bengkulu' ? (
+                          <span className="text-[10px] font-mono text-zinc-500 italic">
+                            Default Test
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => deleteOfficialAccount(acc.id)}
+                            className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
+                            title="Hapus Akun Official"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB 3: ACAK URUTAN TAMPIL */}
       {activeTab === 'acak' && (
         <div className="ag-card p-6 space-y-6">
@@ -540,6 +772,185 @@ export const AdminDashboard: React.FC = () => {
                   ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: MANAJEMEN AKUN OFFICIAL KAFILAH */}
+      {activeTab === 'officials' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="ag-card p-6 border border-white/10 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <span className="text-[10px] font-mono tracking-widest uppercase text-[#00FF87] block mb-1">
+                  OTORISASI KREDENSIAL OFFICIAL
+                </span>
+                <h3 className="text-lg font-bold text-white">
+                  Penerbitan Akun Official Kafilah Daerah
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Admin Pusat membuatkan data username, password, dan nama untuk Official Kafilah 10 Kabupaten/Kota se-Bengkulu.
+                </p>
+              </div>
+
+              <div className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 font-mono text-xs text-zinc-300">
+                Total Akun: <span className="text-[#00FF87] font-bold">{officialAccounts.length}</span>
+              </div>
+            </div>
+
+            {/* Notification alert */}
+            {officialNotice && (
+              <div
+                className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
+                  officialNotice.type === 'success'
+                    ? 'bg-[#00FF87]/15 border border-[#00FF87]/40 text-[#00FF87]'
+                    : 'bg-red-500/15 border border-red-500/40 text-red-400'
+                }`}
+              >
+                {officialNotice.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                ) : (
+                  <XCircle className="w-4 h-4 shrink-0" />
+                )}
+                <span>{officialNotice.message}</span>
+              </div>
+            )}
+
+            {/* Creation Form */}
+            <form onSubmit={handleCreateOfficial} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Username Official
+                </label>
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    value={newOfficialUsername}
+                    onChange={(e) => setNewOfficialUsername(e.target.value)}
+                    placeholder="official_seluma"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Password Login
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    required
+                    value={newOfficialPassword}
+                    onChange={(e) => setNewOfficialPassword(e.target.value)}
+                    placeholder="seluma2026"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Nama Lengkap Official
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newOfficialName}
+                  onChange={(e) => setNewOfficialName(e.target.value)}
+                  placeholder="Drs. H. Mawardi"
+                  className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+                  Kafilah Kabupaten/Kota
+                </label>
+                <select
+                  value={newOfficialKafilah}
+                  onChange={(e) => setNewOfficialKafilah(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#12151e] border border-white/10 text-xs text-white focus:outline-none focus:border-[#00FF87]/60"
+                >
+                  {DAFTAR_KAFILAH.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  className="w-full py-2 px-4 rounded-xl bg-[#00FF87] hover:bg-[#00FF87]/90 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,135,0.3)]"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Terbitkan Akun</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Table of Accounts */}
+          <div className="ag-card p-6 border border-white/10 overflow-hidden">
+            <h4 className="text-sm font-semibold text-white mb-3">
+              Daftar Kredensial Official Terdaftar di Database
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.08] text-zinc-400 font-mono text-[11px]">
+                    <th className="py-2.5 px-3">No</th>
+                    <th className="py-2.5 px-3">Username</th>
+                    <th className="py-2.5 px-3">Password</th>
+                    <th className="py-2.5 px-3">Nama Official</th>
+                    <th className="py-2.5 px-3">Kafilah Daerah</th>
+                    <th className="py-2.5 px-3">Kontak WA</th>
+                    <th className="py-2.5 px-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {officialAccounts.map((acc, idx) => (
+                    <tr key={acc.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3 font-mono text-zinc-500">{idx + 1}</td>
+                      <td className="py-3 px-3 font-mono font-medium text-[#00FF87]">
+                        {acc.username}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-zinc-300 bg-white/[0.02] rounded px-2">
+                        {acc.password}
+                      </td>
+                      <td className="py-3 px-3 font-medium text-white">{acc.namaOfficial}</td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 font-mono text-[10px] text-zinc-300">
+                          {acc.asalKafilah}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-zinc-400">{acc.nomorKontak}</td>
+                      <td className="py-3 px-3 text-right">
+                        {acc.username === 'official_bengkulu' ? (
+                          <span className="text-[10px] font-mono text-zinc-500 italic">
+                            Default Test
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => deleteOfficialAccount(acc.id)}
+                            className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
+                            title="Hapus Akun Official"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

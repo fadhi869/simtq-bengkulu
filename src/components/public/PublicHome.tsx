@@ -178,7 +178,6 @@ export const PublicHome: React.FC = () => {
               <LiveParticipantCard3D
                 key={peserta.id}
                 peserta={peserta}
-                onOpenJuri={() => setRole('juri')}
               />
             ))}
           </div>

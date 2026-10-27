@@ -1,14 +1,32 @@
-export type UserRole = 'public' | 'official' | 'peserta' | 'admin' | 'juri' | 'auth';
+export type UserRole = 'public' | 'official' | 'peserta' | 'admin' | 'auth';
+
+export interface AdminAccount {
+  username: string;
+  password: string;
+  nama: string;
+}
+
+export interface OfficialAccount {
+  id: string;
+  username: string;
+  password: string;
+  namaOfficial: string;
+  asalKafilah: string;
+  nomorKontak: string;
+  createdAt: string;
+}
 
 export interface AuthUser {
   uid: string;
+  username?: string;
   email: string | null;
   displayName: string | null;
   photoURL?: string | null;
   role: UserRole;
   asalKafilah?: string;
-  provider: 'google' | 'password' | 'demo';
+  provider: 'password' | 'google' | 'demo';
   createdAt: string;
+  calonPesertaId?: string;
 }
 
 export type StatusVerifikasi = 'Menunggu Verifikasi' | 'Terverifikasi' | 'Ditolak';
@@ -17,8 +35,11 @@ export type StatusTampil = 'Belum Tampil' | 'Sedang Tampil' | 'Sudah Tampil';
 export interface CalonPesertaOfficial {
   id: string;
   namaLengkap: string;
-  nik: string;
+  emailPeserta: string; // Validated via Google Auth
+  cabang: string;
+  golongan: string;
   asalKafilah: string;
+  nik?: string;
   nomorKontakOfficial: string;
   namaOfficial: string;
   tanggalInput: string;
@@ -30,6 +51,7 @@ export interface Peserta {
   nomorRegistrasi: string;
   calonPesertaId: string;
   namaLengkap: string;
+  emailPeserta?: string;
   nik: string;
   tempatLahir: string;
   tanggalLahir: string;
@@ -55,25 +77,12 @@ export interface Peserta {
   waktuMulaiTampil?: string;
 }
 
-export interface KomponenNilai {
-  nama: string;
-  nilai: number;
-  maks: number;
-}
-
 export interface PenilaianPeserta {
   id: string;
   pesertaId: string;
-  juriId: string;
-  juriNama: string;
-  komponen: {
-    bidang1: KomponenNilai;
-    bidang2: KomponenNilai;
-    bidang3: KomponenNilai;
-  };
   totalNilai: number;
-  catatanDewanHakim: string;
-  isLocked: boolean;
+  catatan?: string;
+  isLocked?: boolean;
   updatedAt: string;
 }
 

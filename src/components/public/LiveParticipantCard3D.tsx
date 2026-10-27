@@ -5,10 +5,9 @@ import { Clock, MapPin, Sparkles } from 'lucide-react';
 
 interface Props {
   peserta: Peserta;
-  onOpenJuri: () => void;
 }
 
-export const LiveParticipantCard3D: React.FC<Props> = ({ peserta, onOpenJuri }) => {
+export const LiveParticipantCard3D: React.FC<Props> = ({ peserta }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -158,13 +157,10 @@ export const LiveParticipantCard3D: React.FC<Props> = ({ peserta, onOpenJuri }) 
           <span className="text-[11px] font-mono text-zinc-400">
             ID: {peserta.nomorRegistrasi}
           </span>
-          <button
-            onClick={onOpenJuri}
-            className="text-xs text-zinc-300 hover:text-white font-medium hover:underline flex items-center gap-1 group/btn"
-          >
-            <span>Buka Panel Juri</span>
-            <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
-          </button>
+          <span className="text-xs text-[#00FF87] font-mono flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] animate-pulse" />
+            <span>Sesi Mimbar Aktif</span>
+          </span>
         </div>
       </motion.div>
     </div>

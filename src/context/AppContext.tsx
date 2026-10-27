@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   UserRole,
   AuthUser,
+  OfficialAccount,
   CalonPesertaOfficial,
   Peserta,
   PenilaianPeserta,
@@ -9,7 +10,13 @@ import type {
   StatusTampil,
   LeaderboardItem,
 } from '../types';
-import { initialCalonPeserta, initialPeserta, initialPenilaian } from '../data/mockData';
+import {
+  DEFAULT_ADMIN_ACCOUNT,
+  initialOfficialAccounts,
+  initialCalonPeserta,
+  initialPeserta,
+  initialPenilaian,
+} from '../data/mockData';
 
 interface AppContextType {
   role: UserRole;
@@ -17,27 +24,51 @@ interface AppContextType {
   currentUser: AuthUser | null;
   setCurrentUser: (user: AuthUser | null) => void;
   logout: () => void;
+
+  // Specific Authentication Functions
+  loginAdmin: (username: string, pass: string) => { success: boolean; message: string; user?: AuthUser };
+  loginOfficial: (username: string, pass: string) => { success: boolean; message: string; user?: AuthUser };
+  loginPesertaWithGoogle: (
+    email: string,
+    displayName: string,
+    photoURL?: string
+  ) => { success: boolean; message: string; user?: AuthUser; calon?: CalonPesertaOfficial };
+
+  // Admin Account & Official Management
+  officialAccounts: OfficialAccount[];
+  addOfficialAccount: (data: {
+    username: string;
+    password: string;
+    namaOfficial: string;
+    asalKafilah: string;
+    nomorKontak: string;
+  }) => { success: boolean; message: string };
+  deleteOfficialAccount: (id: string) => void;
+
+  // Calon Peserta by Official
   calonPesertaList: CalonPesertaOfficial[];
-  pesertaList: Peserta[];
-  penilaianList: PenilaianPeserta[];
-  
-  // Official Actions
   addCalonPeserta: (data: {
     namaLengkap: string;
-    nik: string;
+    emailPeserta: string;
+    cabang: string;
+    golongan: string;
     asalKafilah: string;
-    nomorKontakOfficial: string;
-    namaOfficial: string;
+    nik?: string;
+    nomorKontakOfficial?: string;
+    namaOfficial?: string;
   }) => { success: boolean; message: string };
   deleteCalonPeserta: (id: string) => void;
 
-  // Peserta Actions
+  // Peserta Registrasi
+  pesertaList: Peserta[];
   checkEligibility: (namaLengkap: string, nik: string) => {
     eligible: boolean;
     calon?: CalonPesertaOfficial;
     message: string;
   };
-  registerPeserta: (pesertaData: Omit<Peserta, 'id' | 'nomorRegistrasi' | 'statusVerifikasi' | 'tanggalDaftar' | 'statusTampil'>) => {
+  registerPeserta: (
+    pesertaData: Omit<Peserta, 'id' | 'nomorRegistrasi' | 'statusVerifikasi' | 'tanggalDaftar' | 'statusTampil'>
+  ) => {
     success: boolean;
     message: string;
     peserta?: Peserta;
@@ -48,17 +79,8 @@ interface AppContextType {
   acakNomorUrutTampil: (cabang: string, golongan: string) => { success: boolean; count: number };
   updateStatusTampil: (pesertaId: string, status: StatusTampil, mimbar?: string) => void;
 
-  // Juri Actions
-  simpanNilai: (data: {
-    pesertaId: string;
-    juriId: string;
-    juriNama: string;
-    komponen: PenilaianPeserta['komponen'];
-    totalNilai: number;
-    catatanDewanHakim: string;
-  }) => { success: boolean; message: string };
-
   // Public / Leaderboard
+  penilaianList: PenilaianPeserta[];
   getLeaderboard: (cabang?: string, golongan?: string, kafilah?: string) => LeaderboardItem[];
   getActivePesertaTampil: () => Peserta[];
 
@@ -71,6 +93,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const STORAGE_KEYS = {
   ROLE: 'simtq_role_bengkulu_v1',
   AUTH_USER: 'simtq_auth_user_v1',
+  OFFICIAL_ACCOUNTS: 'simtq_official_accounts_v1',
   CALON: 'simtq_calon_peserta_v1',
   PESERTA: 'simtq_peserta_v1',
   PENILAIAN: 'simtq_penilaian_v1',
@@ -92,6 +115,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     return null;
+  });
+
+  const [officialAccounts, setOfficialAccounts] = useState<OfficialAccount[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.OFFICIAL_ACCOUNTS);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse official accounts data', e);
+      }
+    }
+    return initialOfficialAccounts;
   });
 
   const [calonPesertaList, setCalonPesertaList] = useState<CalonPesertaOfficial[]>(() => {
@@ -130,7 +165,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return initialPenilaian;
   });
 
-  // Sync to localStorage
+  // Sync state to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ROLE, role);
   }, [role]);
@@ -142,6 +177,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.OFFICIAL_ACCOUNTS, JSON.stringify(officialAccounts));
+  }, [officialAccounts]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CALON, JSON.stringify(calonPesertaList));
@@ -169,40 +208,197 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = () => {
     setCurrentUserState(null);
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    setRoleState('public');
   };
 
-  // Official: Pra-Pendaftaran
+  // 1. Login Admin (Username & Password)
+  const loginAdmin = (username: string, pass: string) => {
+    const cleanUser = username.trim().toLowerCase();
+    if (
+      cleanUser === DEFAULT_ADMIN_ACCOUNT.username.toLowerCase() &&
+      pass === DEFAULT_ADMIN_ACCOUNT.password
+    ) {
+      const user: AuthUser = {
+        uid: 'ADMIN-PUSAT-01',
+        username: DEFAULT_ADMIN_ACCOUNT.username,
+        displayName: DEFAULT_ADMIN_ACCOUNT.nama,
+        email: 'admin.lptq@bengkulu.go.id',
+        role: 'admin',
+        provider: 'password',
+        createdAt: new Date().toISOString(),
+      };
+      setCurrentUser(user);
+      setRoleState('admin');
+      return { success: true, message: 'Autentikasi Admin Pusat Terverifikasi.', user };
+    }
+    return {
+      success: false,
+      message: 'Kombinasi Username atau Password Admin salah. (Gunakan: admin_smtq / rahasiaAdmin2026)',
+    };
+  };
+
+  // 2. Login Official (Username & Password)
+  const loginOfficial = (username: string, pass: string) => {
+    const cleanUser = username.trim().toLowerCase();
+    const acc = officialAccounts.find(
+      (o) => o.username.toLowerCase() === cleanUser && o.password === pass
+    );
+
+    if (acc) {
+      const user: AuthUser = {
+        uid: acc.id,
+        username: acc.username,
+        displayName: acc.namaOfficial,
+        email: `${acc.username}@kafilah.bengkulu.go.id`,
+        role: 'official',
+        asalKafilah: acc.asalKafilah,
+        provider: 'password',
+        createdAt: new Date().toISOString(),
+      };
+      setCurrentUser(user);
+      setRoleState('official');
+      return {
+        success: true,
+        message: `Autentikasi Official ${acc.asalKafilah} Terverifikasi.`,
+        user,
+      };
+    }
+    return {
+      success: false,
+      message: 'Username atau Password Official tidak cocok. (Gunakan: official_bengkulu / officialSmtq2026)',
+    };
+  };
+
+  // 3. Login Peserta with Google Auth (Validasi Email terhadap CalonPesertaOfficial)
+  const loginPesertaWithGoogle = (
+    email: string,
+    displayName: string,
+    photoURL?: string
+  ) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const calon = calonPesertaList.find(
+      (c) => c.emailPeserta && c.emailPeserta.toLowerCase() === cleanEmail
+    );
+
+    if (!calon) {
+      return {
+        success: false,
+        message: `Akses Ditolak: Email Google "${email}" BELUM DIDAFTARKAN oleh Official Kafilah daerah Anda. Sesuai regulasi MTQ Provinsi Bengkulu, calon peserta harus didaftarkan oleh Official Kafilah Kabupaten/Kota terlebih dahulu.`,
+      };
+    }
+
+    const user: AuthUser = {
+      uid: `PESERTA-${calon.id}`,
+      displayName: displayName || calon.namaLengkap,
+      email: cleanEmail,
+      photoURL: photoURL || null,
+      role: 'peserta',
+      asalKafilah: calon.asalKafilah,
+      calonPesertaId: calon.id,
+      provider: 'google',
+      createdAt: new Date().toISOString(),
+    };
+
+    setCurrentUser(user);
+    setRoleState('peserta');
+    return {
+      success: true,
+      message: `Otentikasi Berhasil! Data Anda ditemukan atas nama "${calon.namaLengkap}" (${calon.asalKafilah}).`,
+      user,
+      calon,
+    };
+  };
+
+  // Admin: Create & Manage Official Accounts
+  const addOfficialAccount = (data: {
+    username: string;
+    password: string;
+    namaOfficial: string;
+    asalKafilah: string;
+    nomorKontak: string;
+  }) => {
+    const cleanUser = data.username.trim().toLowerCase();
+    if (!cleanUser || !data.password.trim() || !data.namaOfficial.trim()) {
+      return { success: false, message: 'Username, password, dan nama official wajib diisi.' };
+    }
+
+    const exists =
+      officialAccounts.some((o) => o.username.toLowerCase() === cleanUser) ||
+      cleanUser === DEFAULT_ADMIN_ACCOUNT.username.toLowerCase();
+
+    if (exists) {
+      return { success: false, message: 'Username tersebut sudah terdaftar di sistem. Gunakan yang lain.' };
+    }
+
+    const newOfficial: OfficialAccount = {
+      id: `OFFICIAL-${Date.now().toString().slice(-4)}`,
+      username: cleanUser,
+      password: data.password.trim(),
+      namaOfficial: data.namaOfficial.trim(),
+      asalKafilah: data.asalKafilah,
+      nomorKontak: data.nomorKontak.trim() || '081234567890',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setOfficialAccounts((prev) => [newOfficial, ...prev]);
+    return {
+      success: true,
+      message: `Akun Official "${newOfficial.username}" untuk Kafilah ${newOfficial.asalKafilah} berhasil diterbitkan!`,
+    };
+  };
+
+  const deleteOfficialAccount = (id: string) => {
+    setOfficialAccounts((prev) => prev.filter((o) => o.id !== id));
+  };
+
+  // Official: Pra-Pendaftaran Data Dasar Peserta
   const addCalonPeserta = (data: {
     namaLengkap: string;
-    nik: string;
+    emailPeserta: string;
+    cabang: string;
+    golongan: string;
     asalKafilah: string;
-    nomorKontakOfficial: string;
-    namaOfficial: string;
+    nik?: string;
+    nomorKontakOfficial?: string;
+    namaOfficial?: string;
   }) => {
-    const cleanNik = data.nik.trim();
+    const cleanEmail = data.emailPeserta.trim().toLowerCase();
     const cleanName = data.namaLengkap.trim();
 
-    // Check duplicate NIK or name
+    if (!cleanEmail || !cleanName) {
+      return { success: false, message: 'Nama Lengkap dan Email Google Peserta wajib diisi.' };
+    }
+
+    // Check duplicate email
     const exists = calonPesertaList.some(
-      (c) => c.nik === cleanNik || c.namaLengkap.toLowerCase() === cleanName.toLowerCase()
+      (c) => c.emailPeserta && c.emailPeserta.toLowerCase() === cleanEmail
     );
     if (exists) {
-      return { success: false, message: 'Calon peserta dengan NIK atau Nama tersebut sudah terdaftar di sistem pra-pendaftaran.' };
+      return {
+        success: false,
+        message: `Email Google "${cleanEmail}" sudah terdaftar pada daftar calon peserta.`,
+      };
     }
 
     const newCalon: CalonPesertaOfficial = {
       id: `CALON-${Date.now().toString().slice(-4)}`,
       namaLengkap: cleanName,
-      nik: cleanNik,
+      emailPeserta: cleanEmail,
+      cabang: data.cabang,
+      golongan: data.golongan,
+      nik: data.nik?.trim() || `17${Math.floor(10000000000000 + Math.random() * 90000000000000)}`,
       asalKafilah: data.asalKafilah,
-      nomorKontakOfficial: data.nomorKontakOfficial,
-      namaOfficial: data.namaOfficial,
+      nomorKontakOfficial: data.nomorKontakOfficial || '081234567890',
+      namaOfficial: data.namaOfficial || `Official ${data.asalKafilah}`,
       tanggalInput: new Date().toISOString().split('T')[0],
       isRegistered: false,
     };
 
     setCalonPesertaList((prev) => [newCalon, ...prev]);
-    return { success: true, message: `Berhasil mendaftarkan calon peserta: ${cleanName}` };
+    return {
+      success: true,
+      message: `Berhasil mendaftarkan peserta: "${cleanName}" (${cleanEmail}). Peserta kini dapat login menggunakan Akun Google tersebut.`,
+    };
   };
 
   const deleteCalonPeserta = (id: string) => {
@@ -231,65 +427,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return {
         eligible: false,
         calon,
-        message: `Calon peserta atas nama "${calon.namaLengkap}" sudah menyelesaikan registrasi lengkap sebelumnya. Silakan cek status pendaftaran Anda di menu Laman Peserta atau hubungi Admin.`,
+        message: `Calon peserta atas nama "${calon.namaLengkap}" sudah menyelesaikan registrasi lengkap sebelumnya.`,
       };
     }
 
     return {
       eligible: true,
       calon,
-      message: `Data rekomendasi Official Kafilah "${calon.asalKafilah}" ditemukan dan valid! Anda berhak melanjutkan pendaftaran lengkap.`,
+      message: `Data rekomendasi Official Kafilah "${calon.asalKafilah}" ditemukan dan valid!`,
     };
   };
 
   // Peserta: Submit Formulir Registrasi Lengkap
-  const registerPeserta = (pesertaData: Omit<Peserta, 'id' | 'nomorRegistrasi' | 'statusVerifikasi' | 'tanggalDaftar' | 'statusTampil'>) => {
-    // Check validation against CalonPeserta
+  const registerPeserta = (
+    pesertaData: Omit<Peserta, 'id' | 'nomorRegistrasi' | 'statusVerifikasi' | 'tanggalDaftar' | 'statusTampil'>
+  ) => {
     const calon = calonPesertaList.find((c) => c.id === pesertaData.calonPesertaId);
     if (!calon) {
       return {
         success: false,
-        message: 'Validasi gagal: ID Rekomendasi Official tidak valid.',
+        message: 'Registrasi ditolak: ID Pra-Pendaftaran tidak valid atau belum terdaftar oleh Official Kafilah.',
       };
     }
 
-    if (calon.isRegistered) {
-      return {
-        success: false,
-        message: 'Peserta ini telah menyelesaikan registrasi sebelumnya.',
-      };
-    }
+    const regSeq = (pesertaList.length + 1).toString().padStart(3, '0');
+    const nomorRegistrasi = `MTQ-BKL-2026-${regSeq}`;
 
-    const regCount = pesertaList.length + 1;
-    const formattedNum = String(regCount).padStart(3, '0');
-    const newId = `PESERTA-${Date.now().toString().slice(-4)}`;
     const newPeserta: Peserta = {
       ...pesertaData,
-      id: newId,
-      nomorRegistrasi: `MTQ-BKL-2026-${formattedNum}`,
+      id: `PESERTA-${Date.now().toString().slice(-4)}`,
+      nomorRegistrasi,
+      emailPeserta: calon.emailPeserta,
       statusVerifikasi: 'Menunggu Verifikasi',
-      tanggalDaftar: new Date().toLocaleString('id-ID', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      tanggalDaftar: new Date().toLocaleString('id-ID'),
       statusTampil: 'Belum Tampil',
-      nomorUrutTampil: null,
     };
 
-    // Update Peserta list
     setPesertaList((prev) => [newPeserta, ...prev]);
 
-    // Mark CalonPeserta as isRegistered = true
+    // Mark calon as registered
     setCalonPesertaList((prev) =>
       prev.map((c) => (c.id === calon.id ? { ...c, isRegistered: true } : c))
     );
 
     return {
       success: true,
-      message: `Pendaftaran berhasil! Nomor Registrasi Anda: ${newPeserta.nomorRegistrasi}. Berkas Anda sedang menunggu verifikasi oleh Admin Pusat.`,
+      message: `Pendaftaran berhasil disimpan! Nomor Registrasi Anda: ${nomorRegistrasi}`,
       peserta: newPeserta,
     };
   };
@@ -298,49 +481,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateVerifikasi = (pesertaId: string, status: StatusVerifikasi, catatan?: string) => {
     setPesertaList((prev) =>
       prev.map((p) =>
-        p.id === pesertaId
-          ? {
-              ...p,
-              statusVerifikasi: status,
-              catatanVerifikasi: catatan || (status === 'Terverifikasi' ? 'Berkas lengkap dan sesuai ketentuan.' : 'Berkas belum memenuhi kualifikasi.'),
-            }
-          : p
+        p.id === pesertaId ? { ...p, statusVerifikasi: status, catatanVerifikasi: catatan } : p
       )
     );
   };
 
-  // Admin: Acak Urutan Tampil (Lottery)
+  // Admin: Acak Nomor Urut Tampil
   const acakNomorUrutTampil = (cabang: string, golongan: string) => {
-    // Filter peserta terverifikasi pada cabang & golongan
-    const eligibleParticipants = pesertaList.filter(
+    const pool = pesertaList.filter(
       (p) => p.cabang === cabang && p.golongan === golongan && p.statusVerifikasi === 'Terverifikasi'
     );
 
-    if (eligibleParticipants.length === 0) {
+    if (pool.length === 0) {
       return { success: false, count: 0 };
     }
 
-    // Shuffle using Fisher-Yates
-    const shuffledIds = [...eligibleParticipants.map((p) => p.id)].sort(() => Math.random() - 0.5);
+    // Fisher-Yates shuffle
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const updatedMap = new Map<string, number>();
+    shuffled.forEach((peserta, idx) => {
+      updatedMap.set(peserta.id, idx + 1);
+    });
 
     setPesertaList((prev) =>
-      prev.map((p) => {
-        const index = shuffledIds.indexOf(p.id);
-        if (index !== -1) {
-          return {
-            ...p,
-            nomorUrutTampil: index + 1,
-            mimbar: p.mimbar || 'Mimbar Utama MTQ Provinsi Bengkulu',
-          };
-        }
-        return p;
-      })
+      prev.map((p) => (updatedMap.has(p.id) ? { ...p, nomorUrutTampil: updatedMap.get(p.id) } : p))
     );
 
-    return { success: true, count: eligibleParticipants.length };
+    return { success: true, count: pool.length };
   };
 
-  // Admin: Live Status Management
+  // Admin: Live Mimbar Status
   const updateStatusTampil = (pesertaId: string, status: StatusTampil, mimbar?: string) => {
     setPesertaList((prev) =>
       prev.map((p) => {
@@ -359,7 +534,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // If status changed to "Sudah Tampil", lock existing score
     if (status === 'Sudah Tampil') {
       setPenilaianList((prev) =>
         prev.map((item) => (item.pesertaId === pesertaId ? { ...item, isLocked: true } : item))
@@ -367,70 +541,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Juri: Input Nilai
-  const simpanNilai = (data: {
-    pesertaId: string;
-    juriId: string;
-    juriNama: string;
-    komponen: PenilaianPeserta['komponen'];
-    totalNilai: number;
-    catatanDewanHakim: string;
-  }) => {
-    const targetPeserta = pesertaList.find((p) => p.id === data.pesertaId);
-    if (!targetPeserta) {
-      return { success: false, message: 'Data peserta tidak ditemukan.' };
-    }
-
-    // Role protection rule: Juri can ONLY input when status is 'Sedang Tampil'
-    if (targetPeserta.statusTampil !== 'Sedang Tampil') {
-      if (targetPeserta.statusTampil === 'Sudah Tampil') {
-        return {
-          success: false,
-          message: 'GAGAL: Status peserta telah diubah menjadi "Sudah Tampil". Form penilaian telah TERKUNCI secara permanen dan tidak dapat diubah.',
-        };
-      }
-      return {
-        success: false,
-        message: 'GAGAL: Peserta belum berstatus "Sedang Tampil". Nilai hanya dapat diinput saat peserta sedang berada di panggung mimbar.',
-      };
-    }
-
-    const existingIndex = penilaianList.findIndex((n) => n.pesertaId === data.pesertaId);
-
-    if (existingIndex >= 0 && penilaianList[existingIndex].isLocked) {
-      return {
-        success: false,
-        message: 'Penilaian peserta ini sudah dikunci secara sah.',
-      };
-    }
-
-    const updatedPenilaian: PenilaianPeserta = {
-      id: existingIndex >= 0 ? penilaianList[existingIndex].id : `NILAI-${Date.now().toString().slice(-4)}`,
-      pesertaId: data.pesertaId,
-      juriId: data.juriId,
-      juriNama: data.juriNama,
-      komponen: data.komponen,
-      totalNilai: data.totalNilai,
-      catatanDewanHakim: data.catatanDewanHakim,
-      isLocked: false,
-      updatedAt: new Date().toLocaleString('id-ID'),
-    };
-
-    if (existingIndex >= 0) {
-      setPenilaianList((prev) => prev.map((item, idx) => (idx === existingIndex ? updatedPenilaian : item)));
-    } else {
-      setPenilaianList((prev) => [updatedPenilaian, ...prev]);
-    }
-
-    return {
-      success: true,
-      message: `Nilai berhasil disimpan: Total ${data.totalNilai.toFixed(2)} poin. Status penilaian aktif selama peserta tampil.`,
-    };
-  };
-
-  // Public: Leaderboard (Urutan Terbesar ke Terkecil)
+  // Public: Leaderboard
   const getLeaderboard = (cabang?: string, golongan?: string, kafilah?: string): LeaderboardItem[] => {
-    // Only participants with status "Sudah Tampil"
     const finishedParticipants = pesertaList.filter((p) => p.statusTampil === 'Sudah Tampil');
 
     const filtered = finishedParticipants.filter((p) => {
@@ -440,7 +552,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return true;
     });
 
-    // Map to Leaderboard items with score
     const items: LeaderboardItem[] = filtered.map((peserta) => {
       const penilaian = penilaianList.find((n) => n.pesertaId === peserta.id) || null;
       const nilaiAkhir = penilaian ? penilaian.totalNilai : 0;
@@ -452,10 +563,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
 
-    // Sort descending by score
     items.sort((a, b) => b.nilaiAkhir - a.nilaiAkhir);
 
-    // Assign ranking
     return items.map((item, index) => ({
       ...item,
       peringkat: index + 1,
@@ -474,7 +583,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem(STORAGE_KEYS.PENILAIAN);
     localStorage.removeItem(STORAGE_KEYS.ROLE);
     localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    localStorage.removeItem(STORAGE_KEYS.OFFICIAL_ACCOUNTS);
     setCurrentUserState(null);
+    setOfficialAccounts(initialOfficialAccounts);
     setCalonPesertaList(initialCalonPeserta);
     setPesertaList(initialPeserta);
     setPenilaianList(initialPenilaian);
@@ -489,6 +600,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         setCurrentUser,
         logout,
+        loginAdmin,
+        loginOfficial,
+        loginPesertaWithGoogle,
+        officialAccounts,
+        addOfficialAccount,
+        deleteOfficialAccount,
         calonPesertaList,
         pesertaList,
         penilaianList,
@@ -499,7 +616,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateVerifikasi,
         acakNomorUrutTampil,
         updateStatusTampil,
-        simpanNilai,
         getLeaderboard,
         getActivePesertaTampil,
         resetAllData,

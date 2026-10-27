@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CABANG_DAN_GOLONGAN } from '../../data/constants';
 import type { CalonPesertaOfficial, Peserta } from '../../types';
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export const PesertaRegistration: React.FC = () => {
-  const { calonPesertaList, checkEligibility, registerPeserta, setRole } = useApp();
+  const { calonPesertaList, pesertaList, checkEligibility, registerPeserta, setRole, currentUser } = useApp();
 
   const [searchName, setSearchName] = useState<string>('');
   const [searchNik, setSearchNik] = useState<string>('');
@@ -49,6 +49,36 @@ export const PesertaRegistration: React.FC = () => {
   const [persetujuanPeraturan, setPersetujuanPeraturan] = useState<boolean>(false);
 
   const [registeredResult, setRegisteredResult] = useState<Peserta | null>(null);
+
+  // Auto-resolve Google-authenticated participant
+  useEffect(() => {
+    if (currentUser?.role === 'peserta') {
+      // 1. Check if already completed registration
+      const existing = pesertaList.find(
+        (p) =>
+          (currentUser.email && p.emailPeserta?.toLowerCase() === currentUser.email.toLowerCase()) ||
+          p.calonPesertaId === currentUser.calonPesertaId
+      );
+      if (existing) {
+        setRegisteredResult(existing);
+        return;
+      }
+
+      // 2. Resolve Calon data
+      const calon = calonPesertaList.find(
+        (c) =>
+          c.id === currentUser.calonPesertaId ||
+          (currentUser.email && c.emailPeserta?.toLowerCase() === currentUser.email.toLowerCase())
+      );
+      if (calon) {
+        setVerifiedCalon(calon);
+        if (calon.cabang) setCabang(calon.cabang);
+        if (calon.golongan) setGolongan(calon.golongan);
+        if (calon.namaLengkap) setSearchName(calon.namaLengkap);
+        if (calon.nik) setSearchNik(calon.nik);
+      }
+    }
+  }, [currentUser, pesertaList, calonPesertaList]);
 
   const calculateAge = (dobString: string): number => {
     if (!dobString) return 0;
@@ -275,8 +305,67 @@ export const PesertaRegistration: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6 max-w-3xl mx-auto">
+          {/* Status Akun Google Peserta */}
+          {currentUser?.role === 'peserta' && verifiedCalon ? (
+            <div className="ag-card p-4 sm:p-5 border border-[#00FF87]/40 bg-[#00FF87]/[0.03] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#00FF87]/20 border border-[#00FF87]/40 flex items-center justify-center text-[#00FF87] font-bold text-sm shrink-0">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt="Google User"
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    'G'
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-white">
+                      {currentUser.displayName || verifiedCalon.namaLengkap}
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#00FF87]/20 text-[#00FF87] border border-[#00FF87]/40">
+                      GOOGLE AUTH TERVERIFIKASI
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400 font-mono mt-0.5">
+                    {currentUser.email} • Kafilah {verifiedCalon.asalKafilah}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs font-mono text-[#00FF87] flex items-center gap-1.5 bg-[#00FF87]/10 px-3 py-1.5 rounded-full">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>Rekomendasi Kafilah Sah</span>
+              </div>
+            </div>
+          ) : (
+            <div className="ag-card p-6 border border-amber-500/30 bg-amber-500/[0.04] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <span className="text-[10px] font-mono text-amber-400 tracking-wider uppercase block mb-1">
+                  AUTENTIKASI GOOGLE PESERTA
+                </span>
+                <h4 className="text-sm font-bold text-white">
+                  Masuk dengan Akun Google Terdaftar
+                </h4>
+                <p className="text-xs text-zinc-400 mt-0.5 max-w-md">
+                  Sesuai alur MTQ, peserta login melalui Akun Google setelah email didaftarkan oleh Official Kafilah daerah.
+                </p>
+              </div>
+              <button
+                onClick={() => setRole('auth')}
+                className="px-4 py-2 rounded-full bg-[#00FF87] text-black text-xs font-semibold hover:bg-[#00FF87]/90 transition-all flex items-center gap-2 shadow-[0_0_12px_rgba(0,255,135,0.3)] shrink-0"
+              >
+                <span>Login Google Auth</span>
+                <Sparkles className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* Langkah 1: Verifikasi Nama */}
-          <div className="ag-card p-6 space-y-4">
+          {!verifiedCalon && (
+            <div className="ag-card p-6 space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-white/[0.06]">
               <span className="w-5 h-5 rounded-full bg-white/[0.08] text-white flex items-center justify-center font-mono text-xs">
                 1
@@ -375,6 +464,7 @@ export const PesertaRegistration: React.FC = () => {
               </div>
             )}
           </div>
+          )}
 
           {/* Langkah 2: Formulir Lengkap */}
           {verifiedCalon && (
