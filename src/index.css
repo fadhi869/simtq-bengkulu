@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,66 +6,55 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 antialiased font-sans selection:bg-emerald-600 selection:text-white;
+    @apply bg-[#07080c] text-zinc-100 antialiased font-sans selection:bg-emerald-500/20 selection:text-emerald-300;
     min-height: 100vh;
+    letter-spacing: -0.01em;
   }
 }
 
-/* Islamic Pattern Subtle Background */
-.islamic-pattern {
-  background-color: #0b4528;
-  background-image: radial-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 1px), radial-gradient(rgba(212, 175, 55, 0.1) 1px, #0b4528 1px);
-  background-size: 40px 40px;
-  background-position: 0 0, 20px 20px;
+/* Antigravity Minimalist Dot Grid */
+.antigravity-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0;
 }
 
-.islamic-pattern-light {
-  background-color: #f8fafc;
-  background-image: radial-gradient(rgba(13, 92, 58, 0.08) 1.5px, transparent 1.5px);
-  background-size: 24px 24px;
+/* Ambient Radial Glow */
+.ambient-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(245, 158, 11, 0.03) 40%, transparent 70%);
 }
 
-/* Gold Gradient Text */
-.text-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #f6e05e 50%, #b45309 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Minimalist Dark Card Surface */
+.ag-card {
+  @apply bg-[#0e1017]/80 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.16] transition-all duration-300 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)];
 }
 
-/* Emerald to Gold Gradient */
-.bg-mtq-gradient {
-  background: linear-gradient(135deg, #093c23 0%, #0d5c3a 50%, #13774c 100%);
+.ag-card-glow {
+  @apply bg-[#0e1017]/90 backdrop-blur-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 rounded-2xl shadow-[0_0_30px_-5px_rgba(16,185,129,0.12),inset_0_1px_0_0_rgba(255,255,255,0.06)];
 }
 
-.bg-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #e9c46a 50%, #c69214 100%);
+/* Input Styling */
+.ag-input {
+  @apply bg-white/[0.03] border border-white/10 hover:border-white/20 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 font-medium transition-all outline-none;
 }
 
-/* Glassmorphism */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+/* Pill Badge */
+.ag-badge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono tracking-wider uppercase border;
 }
 
-.glass-panel-dark {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Custom scrollbar */
+/* Sleek Dark Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #07080c;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #27272a;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #3f3f46;
 }

@@ -8,24 +8,18 @@ import {
   Search,
   CheckCircle,
   AlertCircle,
-  Lock,
-  Upload,
   FileText,
   Camera,
-  ShieldAlert,
-  ArrowRight,
-  Download,
   Printer,
   Sparkles,
   QrCode,
   Calendar,
-  Eye,
+  Lock,
 } from 'lucide-react';
 
 export const PesertaRegistration: React.FC = () => {
-  const { calonPesertaList, pesertaList, checkEligibility, registerPeserta, setRole } = useApp();
+  const { calonPesertaList, checkEligibility, registerPeserta, setRole } = useApp();
 
-  // Search/Verification Step
   const [searchName, setSearchName] = useState<string>('');
   const [searchNik, setSearchNik] = useState<string>('');
   const [verifiedCalon, setVerifiedCalon] = useState<CalonPesertaOfficial | null>(null);
@@ -39,7 +33,6 @@ export const PesertaRegistration: React.FC = () => {
     message: '',
   });
 
-  // Step 2 Form States
   const [tempatLahir, setTempatLahir] = useState<string>('Kota Bengkulu');
   const [tanggalLahir, setTanggalLahir] = useState<string>('2005-08-17');
   const [jenisKelamin, setJenisKelamin] = useState<'Laki-laki' | 'Perempuan'>('Laki-laki');
@@ -48,19 +41,15 @@ export const PesertaRegistration: React.FC = () => {
   const [cabang, setCabang] = useState<string>("Tilawah Al-Qur'an");
   const [golongan, setGolongan] = useState<string>('Remaja Putra');
 
-  // File Upload States
   const [berkasFileName, setBerkasFileName] = useState<string>('');
-  const [berkasType, setBerkasType] = useState<'KTP' | 'KK'>('KTP');
   const [fotoUrl, setFotoUrl] = useState<string>(
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&fit=crop&q=80'
   );
-  const [isRedBackgroundConfirmed, setIsRedBackgroundConfirmed] = useState<boolean>(true);
+  const [isRedBackgroundConfirmed] = useState<boolean>(true);
   const [persetujuanPeraturan, setPersetujuanPeraturan] = useState<boolean>(false);
 
-  // Registered Participant Success State
   const [registeredResult, setRegisteredResult] = useState<Peserta | null>(null);
 
-  // Calculate age dynamically from birthdate
   const calculateAge = (dobString: string): number => {
     if (!dobString) return 0;
     const dob = new Date(dobString);
@@ -77,7 +66,6 @@ export const PesertaRegistration: React.FC = () => {
   const isAdult = calculatedAge >= 17;
   const requiredDocType = isAdult ? 'KTP' : 'KK';
 
-  // Handle checking eligibility
   const handleCheckEligibility = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchName.trim()) {
@@ -98,24 +86,21 @@ export const PesertaRegistration: React.FC = () => {
 
     if (res.eligible && res.calon) {
       setVerifiedCalon(res.calon);
-      // Auto-set initial document filename simulation
       setBerkasFileName(
         calculatedAge >= 17
           ? `KTP_${res.calon.namaLengkap.replace(/\s+/g, '_')}.pdf`
           : `KK_${res.calon.namaLengkap.replace(/\s+/g, '_')}.pdf`
       );
-      setBerkasType(calculatedAge >= 17 ? 'KTP' : 'KK');
     } else {
       setVerifiedCalon(null);
     }
   };
 
-  // Handle Form Submission
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!verifiedCalon) {
-      alert('Sesi validasi nama tidak ditemukan. Silakan ulangi verifikasi pra-pendaftaran.');
+      alert('Sesi validasi nama tidak ditemukan.');
       return;
     }
 
@@ -152,10 +137,9 @@ export const PesertaRegistration: React.FC = () => {
 
     if (result.success && result.peserta) {
       setRegisteredResult(result.peserta);
-      // Trigger festive celebration confetti
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 80,
+        spread: 60,
         origin: { y: 0.6 },
       });
     } else {
@@ -165,160 +149,113 @@ export const PesertaRegistration: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-emerald-950 via-emerald-800 to-amber-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-3 border border-amber-400/30">
-            <UserCheck className="w-3.5 h-3.5" />
-            ROLE 2: PESERTA KAFILAH
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
-            Pendaftaran & Pelengkapan Berkas Peserta
-          </h1>
-          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-normal">
-            Alur pendaftaran terintegrasi. Sistem akan mencocokkan identitas Anda dengan database pra-pendaftaran Official Kafilah Kabupaten/Kota sebelum formulir dibuka.
-          </p>
+      {/* Header Minimalist */}
+      <div className="border-b border-white/[0.08] pb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[11px] font-mono tracking-widest uppercase text-emerald-400">
+            ROLE 02 • REGISTRASI PESERTA
+          </span>
         </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          Pendaftaran & Unggah Berkas Peserta
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl mt-1.5 leading-relaxed">
+          Verifikasi identitas Anda dari daftar rekomendasi kafilah untuk membuka formulir biodata lengkap, pilihan cabang, dan unggah scan KTP/KK.
+        </p>
       </div>
 
-      {/* Registration Success View: ID Card */}
       {registeredResult ? (
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl max-w-3xl mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-2 animate-bounce">
-              <CheckCircle className="w-10 h-10" />
-            </div>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 uppercase tracking-wider">
-              Pendaftaran Berhasil Dikirim
-            </span>
-            <h2 className="text-2xl font-black text-slate-900">
-              Kartu Tanda Peserta MTQ Provinsi Bengkulu
+        <div className="ag-card p-6 sm:p-10 max-w-2xl mx-auto space-y-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+            <CheckCircle className="w-6 h-6" />
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold text-white">
+              Kartu Tanda Peserta Digital
             </h2>
-            <p className="text-xs text-slate-600 max-w-md mx-auto">
-              Simpan bukti pendaftaran ini. Berkas Anda selanjutnya akan diverifikasi oleh Admin Pusat LPTQ Provinsi Bengkulu.
+            <p className="text-xs text-zinc-400 mt-1">
+              Pendaftaran berhasil dikirim dan siap diverifikasi oleh Admin Pusat LPTQ.
             </p>
           </div>
 
-          {/* Printable ID Card */}
-          <div className="border-4 border-emerald-800 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-b from-emerald-900 to-emerald-950 text-white p-6 relative">
-            <div className="absolute inset-0 islamic-pattern opacity-20 pointer-events-none"></div>
-
-            {/* ID Card Header */}
-            <div className="relative z-10 flex items-center justify-between pb-4 border-b border-amber-500/40">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-400 text-emerald-950 flex items-center justify-center font-serif text-2xl font-black">
-                  م
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold tracking-wide text-white">
-                    MTQ PROVINSI BENGKULU KE-XXXVI
-                  </h3>
-                  <p className="text-[10px] text-amber-300 font-medium">
-                    Kafilah: {registeredResult.asalKafilah}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/40 px-2.5 py-1 rounded-full font-bold">
-                  {registeredResult.statusVerifikasi}
+          {/* Minimalist Digital ID Card */}
+          <div className="bg-[#12141d] rounded-2xl border border-white/10 p-6 text-left space-y-5 shadow-2xl relative overflow-hidden">
+            <div className="flex justify-between items-start pb-4 border-b border-white/[0.06]">
+              <div>
+                <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+                  KARTU PESERTA MTQ PROVINSI BENGKULU
+                </span>
+                <span className="text-sm font-bold text-white">
+                  Kafilah {registeredResult.asalKafilah}
                 </span>
               </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] text-emerald-400 border border-emerald-500/30">
+                {registeredResult.statusVerifikasi}
+              </span>
             </div>
 
-            {/* ID Card Body */}
-            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-12 gap-6 items-center py-6">
-              {/* Photo */}
-              <div className="sm:col-span-4 flex flex-col items-center">
-                <div className="w-32 h-40 rounded-2xl bg-red-600 p-1 border-2 border-red-500 shadow-xl overflow-hidden">
-                  <img
-                    src={registeredResult.fotoUrl}
-                    alt={registeredResult.namaLengkap}
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                </div>
-                <span className="text-[9px] text-amber-300 font-bold uppercase mt-2 tracking-wider">
-                  Foto Resmi Latar Merah
-                </span>
+            <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+              <div className="w-24 h-32 rounded-xl bg-red-600/90 p-1 border border-white/20 shrink-0 overflow-hidden shadow">
+                <img
+                  src={registeredResult.fotoUrl}
+                  alt={registeredResult.namaLengkap}
+                  className="w-full h-full object-cover rounded-lg"
+                />
               </div>
 
-              {/* Data */}
-              <div className="sm:col-span-8 space-y-2 text-xs">
+              <div className="space-y-2 text-xs flex-1">
                 <div>
-                  <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                    Nomor Registrasi:
-                  </span>
-                  <div className="text-lg font-mono font-black text-amber-300 tracking-wider">
+                  <span className="text-[10px] font-mono text-zinc-400 block uppercase">No. Registrasi</span>
+                  <span className="text-base font-bold font-mono text-emerald-400 tracking-wider">
                     {registeredResult.nomorRegistrasi}
-                  </div>
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                    Nama Lengkap Peserta:
-                  </span>
-                  <div className="text-base font-bold text-white">
+                  <span className="text-[10px] font-mono text-zinc-400 block uppercase">Nama Peserta</span>
+                  <span className="text-sm font-semibold text-white">
                     {registeredResult.namaLengkap}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+                  <div>
+                    <span className="text-[9px] text-zinc-400 block uppercase">Cabang</span>
+                    <span className="text-zinc-200 font-sans">{registeredResult.cabang}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-zinc-400 block uppercase">Golongan</span>
+                    <span className="text-zinc-200 font-sans">{registeredResult.golongan}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                      Cabang:
-                    </span>
-                    <div className="font-semibold text-slate-100">{registeredResult.cabang}</div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                      Golongan:
-                    </span>
-                    <div className="font-semibold text-amber-300">{registeredResult.golongan}</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                      Dokumen Unggahan:
-                    </span>
-                    <div className="font-mono text-[11px] text-slate-200">
-                      Scan {registeredResult.berkasType} ({registeredResult.usia} Th)
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-emerald-300 uppercase font-semibold">
-                      Tanggal Registrasi:
-                    </span>
-                    <div className="text-[11px] text-slate-200">
-                      {registeredResult.tanggalDaftar}
-                    </div>
-                  </div>
+                <div className="text-[10px] font-mono text-zinc-400 pt-1">
+                  Dokumen: Scan {registeredResult.berkasType} ({registeredResult.usia} Tahun)
                 </div>
               </div>
             </div>
 
-            {/* ID Card Footer */}
-            <div className="relative z-10 pt-4 border-t border-emerald-800 flex justify-between items-center text-[10px] text-emerald-200">
+            <div className="pt-4 border-t border-white/[0.06] flex justify-between items-center text-[10px] font-mono text-zinc-400">
               <div className="flex items-center gap-2">
-                <QrCode className="w-8 h-8 text-amber-300" />
-                <span>Validasi Digital LPTQ Bengkulu</span>
+                <QrCode className="w-5 h-5 text-zinc-400" />
+                <span>QR Autentikasi LPTQ Bengkulu</span>
               </div>
-              <p className="italic">Bawalah kartu ini saat proses verifikasi fisik di lokasi lomba.</p>
+              <span>{registeredResult.tanggalDaftar}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3 pt-4">
+          <div className="flex flex-wrap justify-center gap-2.5 pt-2">
             <button
               onClick={() => window.print()}
-              className="px-6 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center gap-2 shadow"
+              className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors flex items-center gap-1.5"
             >
-              <Printer className="w-4 h-4 text-amber-300" />
+              <Printer className="w-3.5 h-3.5" />
               Cetak Kartu Tanda Peserta
             </button>
             <button
               onClick={() => setRole('admin')}
-              className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-emerald-950 font-bold text-xs flex items-center gap-2 shadow"
+              className="px-5 py-2 rounded-full bg-white/[0.06] text-zinc-200 hover:bg-white/[0.12] text-xs font-medium border border-white/10 transition-colors"
             >
               Lihat di Role Admin Pusat →
             </button>
@@ -330,74 +267,69 @@ export const PesertaRegistration: React.FC = () => {
                 setSearchNik('');
                 setEligibilityResult({ tested: false, eligible: false, message: '' });
               }}
-              className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50"
+              className="px-4 py-2 rounded-full text-zinc-400 hover:text-white text-xs transition-colors"
             >
-              Daftarkan Peserta Lain
+              Daftarkan Lainnya
             </button>
           </div>
         </div>
       ) : (
-        <div className="space-y-8">
-          {/* LANGKAH 1: VERIFIKASI PRA-PENDAFTARAN OFFICIAL */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-100 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+        <div className="space-y-6 max-w-3xl mx-auto">
+          {/* Langkah 1: Verifikasi Nama */}
+          <div className="ag-card p-6 space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.06]">
+              <span className="w-5 h-5 rounded-full bg-white/[0.08] text-white flex items-center justify-center font-mono text-xs">
                 1
-              </div>
-              <div>
-                <h2 className="text-base font-extrabold text-slate-900">
-                  Langkah 1: Verifikasi Rekomendasi Official Kafilah
-                </h2>
-                <p className="text-xs text-slate-600">
-                  Cari nama Anda yang telah diinput oleh Official Kabupaten/Kota untuk membuka formulir
-                </p>
-              </div>
+              </span>
+              <h2 className="text-sm font-semibold text-white">
+                Verifikasi Rekomendasi Official Kafilah
+              </h2>
             </div>
 
-            <form onSubmit={handleCheckEligibility} className="space-y-4 max-w-2xl">
+            <form onSubmit={handleCheckEligibility} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Masukkan Nama Lengkap Sesuai Rekomendasi Kafilah *
+                <label className="block text-xs text-zinc-300 font-medium mb-1">
+                  Nama Lengkap Sesuai Rekomendasi Kafilah *
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={searchName}
                     onChange={(e) => setSearchName(e.target.value)}
-                    placeholder="Ketik nama lengkap Anda..."
-                    className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    placeholder="Masukkan nama lengkap..."
+                    className="w-full ag-input pl-8"
                     required
                   />
-                  <Search className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Nomor Induk Kependudukan (NIK) Opsional/Pencocokan Cepat
+                <label className="block text-xs text-zinc-300 font-medium mb-1">
+                  Nomor Induk Kependudukan (NIK) Opsional
                 </label>
                 <input
                   type="text"
                   maxLength={16}
                   value={searchNik}
                   onChange={(e) => setSearchNik(e.target.value.replace(/\D/g, ''))}
-                  placeholder="16 Digit NIK (Opsional jika nama unik)"
-                  className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                  placeholder="16 Digit NIK"
+                  className="w-full ag-input font-mono"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
                   type="submit"
-                  className="py-2.5 px-6 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-md shadow-emerald-900/20 transition-all flex items-center gap-2"
+                  className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors flex items-center gap-1.5"
                 >
-                  <Search className="w-4 h-4 text-amber-300" />
-                  Cek Rekomendasi Official
+                  <Search className="w-3.5 h-3.5" />
+                  Cek Rekomendasi
                 </button>
 
-                {/* Quick Hint / Select from mock list */}
-                <div className="text-xs text-slate-600 flex items-center gap-1.5">
-                  <span>Atau pilih contoh nama belum mendaftar:</span>
+                {/* Quick mock selector */}
+                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                  <span>Atau pilih contoh:</span>
                   <select
                     onChange={(e) => {
                       const selected = calonPesertaList.find((c) => c.namaLengkap === e.target.value);
@@ -406,13 +338,13 @@ export const PesertaRegistration: React.FC = () => {
                         setSearchNik(selected.nik);
                       }
                     }}
-                    className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-300 rounded-lg px-2 py-1"
+                    className="ag-input py-1 text-xs"
                   >
-                    <option value="">-- Pilih Calon Rekomendasi --</option>
+                    <option value="" className="bg-[#10121a]">-- Pilih Rekomendasi --</option>
                     {calonPesertaList
                       .filter((c) => !c.isRegistered)
                       .map((c) => (
-                        <option key={c.id} value={c.namaLengkap}>
+                        <option key={c.id} value={c.namaLengkap} className="bg-[#10121a]">
                           {c.namaLengkap} ({c.asalKafilah})
                         </option>
                       ))}
@@ -421,441 +353,296 @@ export const PesertaRegistration: React.FC = () => {
               </div>
             </form>
 
-            {/* Eligibility Feedback */}
             {eligibilityResult.tested && (
               <div
-                className={`mt-6 p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
+                className={`p-3.5 rounded-xl text-xs flex items-start gap-2.5 ${
                   eligibilityResult.eligible
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                    : 'bg-red-50 border-red-200 text-red-900'
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                    : 'bg-red-500/10 text-red-300 border border-red-500/20'
                 }`}
               >
                 {eligibilityResult.eligible ? (
-                  <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <h4 className="font-extrabold text-sm mb-1">
-                    {eligibilityResult.eligible
-                      ? 'Validasi Rekomendasi Berhasil!'
-                      : 'Validasi Tidak Berhasil'}
-                  </h4>
-                  <p>{eligibilityResult.message}</p>
-
-                  {eligibilityResult.eligible && verifiedCalon && (
-                    <div className="mt-3 p-3 bg-white rounded-xl border border-emerald-200 space-y-1 text-xs">
-                      <p>
-                        <strong>Nama Lengkap:</strong> {verifiedCalon.namaLengkap}
-                      </p>
-                      <p>
-                        <strong>Asal Kafilah:</strong> {verifiedCalon.asalKafilah}
-                      </p>
-                      <p>
-                        <strong>Official Pengusul:</strong> {verifiedCalon.namaOfficial} ({verifiedCalon.nomorKontakOfficial})
-                      </p>
-                    </div>
-                  )}
+                  <span className="font-semibold block mb-0.5">
+                    {eligibilityResult.eligible ? 'Rekomendasi Ditemukan' : 'Verifikasi Gagal'}
+                  </span>
+                  <span>{eligibilityResult.message}</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* LANGKAH 2: FORMULIR DATA PRIBADI & BERKAS LENGKAP */}
+          {/* Langkah 2: Formulir Lengkap */}
           {verifiedCalon && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-emerald-600/40 shadow-xl space-y-8 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-black">
+            <div className="ag-card p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-black flex items-center justify-center font-mono text-xs font-bold">
                     2
-                  </div>
-                  <div>
-                    <h2 className="text-base font-extrabold text-slate-900">
-                      Langkah 2: Formulir Registrasi & Pengunggahan Berkas
-                    </h2>
-                    <p className="text-xs text-slate-600">
-                      Lengkapi biodata, pilihan cabang & golongan lomba, serta upload scan KTP/KK dan Pas Foto
-                    </p>
-                  </div>
+                  </span>
+                  <h2 className="text-sm font-semibold text-white">
+                    Formulir Biodata & Berkas Peserta
+                  </h2>
                 </div>
-
-                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  <Lock className="w-3.5 h-3.5" /> Hak Akses Terbuka
+                <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Akses Terbuka
                 </span>
               </div>
 
-              <form onSubmit={handleFinalSubmit} className="space-y-8">
-                {/* Bagian A: Data Identitas Pribadi */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
-                    <UserCheck className="w-4 h-4" />
-                    A. Data Identitas Pribadi (Terkunci Sesuai Rekomendasi)
-                  </h3>
+              <form onSubmit={handleFinalSubmit} className="space-y-6">
+                {/* Biodata */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+                    A. IDENTITAS PRIBADI
+                  </span>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Nama Lengkap (Terkunci):
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">Nama Lengkap (Terkunci)</label>
                       <input
                         type="text"
                         value={verifiedCalon.namaLengkap}
                         disabled
-                        className="w-full text-xs bg-slate-100 border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-slate-700 cursor-not-allowed"
+                        className="w-full ag-input opacity-70 cursor-not-allowed"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        NIK (Terkunci):
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">NIK (Terkunci)</label>
                       <input
                         type="text"
                         value={verifiedCalon.nik}
                         disabled
-                        className="w-full text-xs bg-slate-100 border border-slate-300 rounded-xl px-3 py-2.5 font-mono font-bold text-slate-700 cursor-not-allowed"
+                        className="w-full ag-input opacity-70 cursor-not-allowed font-mono"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Asal Kafilah Kabupaten/Kota:
-                      </label>
-                      <input
-                        type="text"
-                        value={verifiedCalon.asalKafilah}
-                        disabled
-                        className="w-full text-xs bg-slate-100 border border-slate-300 rounded-xl px-3 py-2.5 font-bold text-emerald-900 cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Tempat Lahir *:
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">Tempat Lahir *</label>
                       <input
                         type="text"
                         value={tempatLahir}
                         onChange={(e) => setTempatLahir(e.target.value)}
-                        placeholder="Contoh: Kota Bengkulu"
-                        className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                        className="w-full ag-input"
                         required
                       />
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Tanggal Lahir * (Penentu KTP/KK):
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">Tanggal Lahir *</label>
                       <input
                         type="date"
                         value={tanggalLahir}
                         onChange={(e) => setTanggalLahir(e.target.value)}
-                        className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                        className="w-full ag-input text-zinc-200"
                         required
                       />
-                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-emerald-800 font-semibold">
+                      <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono text-emerald-400">
                         <Calendar className="w-3 h-3" />
-                        <span>
-                          Usia Terhitung: <strong>{calculatedAge} Tahun</strong> (
-                          {isAdult ? 'Wajib KTP' : 'Wajib Kartu Keluarga'})
-                        </span>
+                        <span>Usia: {calculatedAge} Th ({isAdult ? 'Wajib KTP' : 'Wajib KK'})</span>
                       </div>
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Jenis Kelamin *:
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">Jenis Kelamin *</label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
-                          onClick={() => {
-                            setJenisKelamin('Laki-laki');
-                            // If current category has Putri, switch to Putra
-                            if (golongan.includes('Putri')) {
-                              setGolongan(golongan.replace('Putri', 'Putra'));
-                            }
-                          }}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors ${
+                          onClick={() => setJenisKelamin('Laki-laki')}
+                          className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
                             jenisKelamin === 'Laki-laki'
-                              ? 'bg-emerald-800 text-white border-emerald-800'
-                              : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                              ? 'bg-white text-black border-white'
+                              : 'bg-white/[0.03] text-zinc-400 border-white/10'
                           }`}
                         >
-                          Laki-laki (Putra)
+                          Laki-laki
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            setJenisKelamin('Perempuan');
-                            // If current category has Putra, switch to Putri
-                            if (golongan.includes('Putra')) {
-                              setGolongan(golongan.replace('Putra', 'Putri'));
-                            }
-                          }}
-                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors ${
+                          onClick={() => setJenisKelamin('Perempuan')}
+                          className={`py-2 px-3 rounded-xl text-xs font-medium border transition-colors ${
                             jenisKelamin === 'Perempuan'
-                              ? 'bg-emerald-800 text-white border-emerald-800'
-                              : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                              ? 'bg-white text-black border-white'
+                              : 'bg-white/[0.03] text-zinc-400 border-white/10'
                           }`}
                         >
-                          Perempuan (Putri)
+                          Perempuan
                         </button>
                       </div>
                     </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Alamat Lengkap Domisili *:
-                      </label>
-                      <input
-                        type="text"
-                        value={alamat}
-                        onChange={(e) => setAlamat(e.target.value)}
-                        placeholder="Nama jalan, RT/RW, Kelurahan, Kecamatan, Kabupaten/Kota di Bengkulu"
-                        className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                        required
-                      />
-                    </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Nomor HP / WhatsApp Aktif *:
-                      </label>
+                      <label className="block text-[11px] text-zinc-400 mb-1">No. WhatsApp *</label>
                       <input
                         type="text"
                         value={noHp}
                         onChange={(e) => setNoHp(e.target.value)}
                         placeholder="0812xxxxxxxx"
-                        className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                        className="w-full ag-input font-mono"
+                        required
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] text-zinc-400 mb-1">Alamat Lengkap *</label>
+                      <input
+                        type="text"
+                        value={alamat}
+                        onChange={(e) => setAlamat(e.target.value)}
+                        placeholder="Alamat domisili di kabupaten/kota..."
+                        className="w-full ag-input"
                         required
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Bagian B: Pilihan Cabang & Golongan (Dropdown Dinamis Kondisional) */}
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    B. Pilihan Cabang & Golongan Perlombaan (Dinamis Kondisional)
-                  </h3>
+                {/* Cabang & Golongan */}
+                <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+                    B. CABANG & GOLONGAN LOMBA
+                  </span>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Pilih Cabang Musabaqah *:
-                      </label>
+                      <label className="block text-xs text-zinc-300 font-medium mb-1">Cabang *</label>
                       <select
                         value={cabang}
                         onChange={(e) => {
-                          const newCabang = e.target.value;
-                          setCabang(newCabang);
-                          // Auto set default matching golongan
-                          const list = CABANG_DAN_GOLONGAN[newCabang] || [];
+                          const newC = e.target.value;
+                          setCabang(newC);
+                          const list = CABANG_DAN_GOLONGAN[newC] || [];
                           const matching = list.find((g) =>
                             jenisKelamin === 'Laki-laki' ? g.includes('Putra') : g.includes('Putri')
                           );
                           setGolongan(matching || list[0] || '');
                         }}
-                        className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-900"
-                        required
+                        className="w-full ag-input"
                       >
                         {Object.keys(CABANG_DAN_GOLONGAN).map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
+                          <option key={c} value={c} className="bg-[#10121a]">{c}</option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Pilih Golongan Perlombaan *:
-                      </label>
+                      <label className="block text-xs text-zinc-300 font-medium mb-1">Golongan *</label>
                       <select
                         value={golongan}
                         onChange={(e) => setGolongan(e.target.value)}
-                        className="w-full text-xs bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-950"
-                        required
+                        className="w-full ag-input text-emerald-400"
                       >
                         {CABANG_DAN_GOLONGAN[cabang]?.map((g) => (
-                          <option key={g} value={g}>
-                            {g}
-                          </option>
+                          <option key={g} value={g} className="bg-[#10121a]">{g}</option>
                         ))}
                       </select>
-                      <span className="text-[10px] text-slate-600 mt-1 block">
-                        Daftar golongan otomatis menyesuaikan dengan cabang "{cabang}".
-                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Bagian C: Validasi Unggah Berkas (Logika KTP/KK berdasarkan Usia & Pas Foto Merah) */}
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    C. Validasi Berkas Identitas & Pas Foto (Kondisional Usia)
-                  </h3>
+                {/* Berkas KTP/KK & Foto */}
+                <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+                    C. UNGGAH BERKAS (KONDISIONAL USIA)
+                  </span>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* DOKUMEN IDENTITAS (LOGIKA KTP VS KK) */}
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">
-                          {isAdult ? 'Scan KTP Asli (.pdf)' : 'Scan Kartu Keluarga (.pdf)'}
-                        </span>
-                        <span
-                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                            isAdult
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : 'bg-amber-100 text-amber-900 border border-amber-200'
-                          }`}
-                        >
-                          Usia: {calculatedAge} Tahun → {isAdult ? 'Wajib KTP' : 'Wajib KK'}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Logika KTP vs KK */}
+                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-medium text-white">Scan {requiredDocType} (.pdf) *</span>
+                        <span className="text-[10px] font-mono text-zinc-400">
+                          {isAdult ? 'Usia ≥ 17 Th' : 'Usia < 17 Th'}
                         </span>
                       </div>
-
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] text-zinc-400">
                         {isAdult
-                          ? 'Karena peserta berusia ≥ 17 tahun, sistem mewajibkan pengunggahan Scan KTP. Form KK otomatis disembunyikan.'
-                          : 'Karena peserta berusia < 17 tahun, form KTP otomatis disembunyikan dan digantikan wajib mengunggah Scan Kartu Keluarga.'}
+                          ? 'Peserta berusia ≥ 17 tahun: Wajib unggah Scan KTP asli.'
+                          : 'Peserta berusia < 17 tahun: Wajib unggah Scan Kartu Keluarga.'}
                       </p>
-
-                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-emerald-500 transition-colors bg-white">
-                        <FileText className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
-                        <span className="text-xs font-bold text-slate-800 block">
-                          {berkasFileName || `Upload Scan ${requiredDocType} (.pdf)`}
+                      <div className="border border-dashed border-white/10 rounded-xl p-3 text-center space-y-2">
+                        <FileText className="w-6 h-6 text-zinc-500 mx-auto" />
+                        <span className="text-[11px] font-mono text-zinc-300 block truncate">
+                          {berkasFileName || `Pilih file ${requiredDocType}.pdf`}
                         </span>
-                        <span className="text-[10px] text-slate-600 block mt-0.5">
-                          Ukuran maksimal 2MB (Format PDF)
-                        </span>
-
-                        <div className="flex justify-center gap-2 mt-3">
-                          <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold">
-                            Pilih File PDF
-                            <input
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  setBerkasFileName(e.target.files[0].name);
-                                }
-                              }}
-                              className="hidden"
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setBerkasFileName(
-                                isAdult
-                                  ? `KTP_${verifiedCalon.namaLengkap.replace(/\s+/g, '_')}_Scan.pdf`
-                                  : `KK_${verifiedCalon.namaLengkap.replace(/\s+/g, '_')}_Scan.pdf`
-                              );
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold"
-                          >
-                            Simulasi Berkas Sah
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBerkasFileName(
+                              isAdult
+                                ? `KTP_${verifiedCalon.namaLengkap.replace(/\s+/g, '_')}_Scan.pdf`
+                                : `KK_${verifiedCalon.namaLengkap.replace(/\s+/g, '_')}_Scan.pdf`
+                            );
+                          }}
+                          className="px-3 py-1 rounded-full text-[10px] font-mono bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 transition-colors"
+                        >
+                          Simulasi Berkas Sah
+                        </button>
                       </div>
                     </div>
 
-                    {/* UNGGAH PAS FOTO LATAR BELAKANG MERAH */}
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">
-                          Pas Foto Resmi (Latar Belakang Merah) *
-                        </span>
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200">
-                          Wajib Latar Merah
-                        </span>
+                    {/* Pas Foto Latar Merah */}
+                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-medium text-white">Pas Foto Latar Merah *</span>
+                        <span className="text-[10px] font-mono text-red-400">Wajib Merah</span>
                       </div>
-
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
-                        Ketentuan panitia: Pas foto formal terbaru dengan latar belakang merah polos (format .jpg / .jpeg / .png).
-                      </p>
-
-                      <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-200">
-                        {/* Red background preview container */}
-                        <div className="w-20 h-24 rounded-xl bg-red-600 p-1 border-2 border-red-700 shadow-md shrink-0 flex items-center justify-center overflow-hidden">
+                      <div className="flex items-center gap-4 pt-1">
+                        <div className="w-16 h-20 rounded-lg bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden shadow">
                           <img
                             src={fotoUrl}
-                            alt="Preview Pas Foto Latar Merah"
-                            className="w-full h-full object-cover rounded-lg"
+                            alt="Pas Foto Latar Merah"
+                            className="w-full h-full object-cover rounded"
                           />
                         </div>
-
-                        <div className="space-y-2 flex-1">
-                          <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200 w-fit">
+                        <div className="space-y-1.5 text-xs text-zinc-400">
+                          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 text-xs font-medium border border-white/10 transition-colors">
                             <Camera className="w-3.5 h-3.5" />
-                            Ganti Pas Foto
+                            Ganti Foto
                             <input
                               type="file"
-                              accept="image/png, image/jpeg, image/jpg"
+                              accept="image/*"
                               onChange={(e) => {
                                 if (e.target.files && e.target.files[0]) {
-                                  const url = URL.createObjectURL(e.target.files[0]);
-                                  setFotoUrl(url);
+                                  setFotoUrl(URL.createObjectURL(e.target.files[0]));
                                 }
                               }}
                               className="hidden"
                             />
                           </label>
-
-                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                            <span className="w-2 h-2 rounded-full bg-red-600"></span>
-                            <span>Pratinjau berlatar belakang merah terverifikasi</span>
-                          </div>
+                          <span className="text-[10px] text-zinc-400 block font-mono">
+                            Pratinjau latar merah terverifikasi
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Bagian D: Checkbox Persetujuan Komitmen */}
-                <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="persetujuan"
-                      checked={persetujuanPeraturan}
-                      onChange={(e) => setPersetujuanPeraturan(e.target.checked)}
-                      className="w-5 h-5 rounded text-emerald-700 focus:ring-emerald-500 mt-0.5 cursor-pointer"
-                      required
-                    />
-                    <label htmlFor="persetujuan" className="text-xs text-amber-950 font-bold cursor-pointer leading-relaxed">
-                      "Saya berkomitmen untuk mengikuti peraturan hingga akhir"
-                    </label>
-                  </div>
-                  <p className="text-[11px] text-amber-900/80 pl-8 leading-relaxed">
-                    Dengan mencentang pernyataan di atas, saya menyatakan bahwa seluruh data yang diisi adalah benar, mematuhi keputusan Dewan Hakim, serta siap bertanding menjunjung tinggi ukhuwah Islamiyah.
-                  </p>
+                {/* Komitmen */}
+                <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.08] flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="komitmen"
+                    checked={persetujuanPeraturan}
+                    onChange={(e) => setPersetujuanPeraturan(e.target.checked)}
+                    className="w-4 h-4 rounded mt-0.5 accent-emerald-500 cursor-pointer"
+                    required
+                  />
+                  <label htmlFor="komitmen" className="text-xs text-zinc-300 font-medium cursor-pointer leading-relaxed">
+                    "Saya berkomitmen untuk mengikuti peraturan hingga akhir"
+                  </label>
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={!persetujuanPeraturan}
-                    className={`w-full py-4 px-6 rounded-2xl font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 ${
-                      persetujuanPeraturan
-                        ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-emerald-900/20 cursor-pointer hover:scale-[1.01]'
-                        : 'bg-slate-200 text-slate-600 border border-slate-300 cursor-not-allowed'
-                    }`}
-                  >
-                    <UserCheck className="w-5 h-5 text-amber-300" />
-                    Konfirmasi & Kirim Formulir Pendaftaran Lengkap
-                  </button>
-                  {!persetujuanPeraturan && (
-                    <p className="text-center text-[11px] text-amber-800 font-semibold mt-2">
-                      ⚠️ Tombol konfirmasi akan aktif setelah Anda mencentang checkbox komitmen peraturan di atas.
-                    </p>
-                  )}
-                </div>
+                <button
+                  type="submit"
+                  disabled={!persetujuanPeraturan}
+                  className={`w-full py-3 px-4 rounded-full text-xs font-semibold transition-all ${
+                    persetujuanPeraturan
+                      ? 'bg-white text-black hover:bg-zinc-200 cursor-pointer shadow-md'
+                      : 'bg-white/[0.05] text-zinc-500 cursor-not-allowed border border-white/[0.06]'
+                  }`}
+                >
+                  Konfirmasi & Kirim Formulir Pendaftaran
+                </button>
               </form>
             </div>
           )}

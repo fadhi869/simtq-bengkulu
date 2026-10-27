@@ -1,25 +1,16 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DAFTAR_KAFILAH, CABANG_DAN_GOLONGAN, MIMBAR_LIST } from '../../data/constants';
+import { DAFTAR_KAFILAH, CABANG_DAN_GOLONGAN } from '../../data/constants';
 import type { Peserta, StatusVerifikasi, StatusTampil } from '../../types';
 import confetti from 'canvas-confetti';
 import {
-  ShieldCheck,
   BarChart3,
   CheckCircle2,
   XCircle,
   Shuffle,
   Radio,
   FileCheck,
-  Search,
-  Filter,
   Eye,
-  AlertCircle,
-  Sparkles,
-  Layers,
-  MapPin,
-  Clock,
-  User,
   FileText,
 } from 'lucide-react';
 
@@ -34,43 +25,36 @@ export const AdminDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'rekap' | 'validasi' | 'acak' | 'status'>('rekap');
 
-  // Filter states
   const [filterCabang, setFilterCabang] = useState<string>('');
   const [filterGolongan, setFilterGolongan] = useState<string>('');
   const [filterKafilah, setFilterKafilah] = useState<string>('');
   const [filterStatusVerif, setFilterStatusVerif] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Review Modal State
   const [reviewingPeserta, setReviewingPeserta] = useState<Peserta | null>(null);
   const [catatanTolak, setCatatanTolak] = useState<string>('Berkas scan kurang jelas / foto tidak sesuai ketentuan.');
 
-  // Lottery Modal State
   const [lotteryCabang, setLotteryCabang] = useState<string>("Tilawah Al-Qur'an");
   const [lotteryGolongan, setLotteryGolongan] = useState<string>('Dewasa Putra');
   const [lotteryResultMsg, setLotteryResultMsg] = useState<string | null>(null);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
 
-  // Statistics
   const totalCalon = calonPesertaList.length;
   const totalPeserta = pesertaList.length;
   const totalTerverifikasi = pesertaList.filter((p) => p.statusVerifikasi === 'Terverifikasi').length;
   const totalMenunggu = pesertaList.filter((p) => p.statusVerifikasi === 'Menunggu Verifikasi').length;
   const totalDitolak = pesertaList.filter((p) => p.statusVerifikasi === 'Ditolak').length;
 
-  // Breakdown by Kafilah
   const kafilahDistribution: Record<string, number> = {};
   DAFTAR_KAFILAH.forEach((k) => {
     kafilahDistribution[k] = pesertaList.filter((p) => p.asalKafilah === k).length;
   });
 
-  // Breakdown by Cabang
   const cabangDistribution: Record<string, number> = {};
   Object.keys(CABANG_DAN_GOLONGAN).forEach((c) => {
     cabangDistribution[c] = pesertaList.filter((p) => p.cabang === c).length;
   });
 
-  // Filtered Peserta for Tables
   const filteredPeserta = pesertaList.filter((p) => {
     if (filterCabang && p.cabang !== filterCabang) return false;
     if (filterGolongan && p.golongan !== filterGolongan) return false;
@@ -87,7 +71,6 @@ export const AdminDashboard: React.FC = () => {
     return true;
   });
 
-  // Handle Lottery Drawing Action
   const handleRunLottery = () => {
     setIsShuffling(true);
     setLotteryResultMsg(null);
@@ -98,151 +81,137 @@ export const AdminDashboard: React.FC = () => {
 
       if (res.success) {
         setLotteryResultMsg(
-          `Sukses! Berhasil mengacak nomor urut tampil untuk ${res.count} peserta terverifikasi pada ${lotteryCabang} (${lotteryGolongan}).`
+          `Sukses mengacak nomor urut tampil untuk ${res.count} peserta pada ${lotteryCabang} (${lotteryGolongan}).`
         );
         confetti({
-          particleCount: 80,
+          particleCount: 70,
           spread: 60,
           origin: { y: 0.5 },
         });
       } else {
         setLotteryResultMsg(
-          `Gagal mengacak nomor: Belum ada peserta terverifikasi pada cabang "${lotteryCabang}" golongan "${lotteryGolongan}". Silakan verifikasi berkas peserta terlebih dahulu.`
+          `Belum ada peserta berstatus "Terverifikasi" pada cabang "${lotteryCabang}" golongan "${lotteryGolongan}".`
         );
       }
-    }, 800);
+    }, 700);
   };
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Banner Admin Pusat */}
-      <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-amber-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-3 border border-amber-400/30">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            ROLE 3: ADMIN PUSAT (LPTQ PROVINSI BENGKULU)
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
-            Panel Pengendalian, Verifikasi & Manajemen Mimbar MTQ
-          </h1>
-          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-normal">
-            Pusat operasional MTQ Provinsi Bengkulu. Pantau rekapitulasi kafilah 10 kabupaten/kota, verifikasi berkas scan KTP/KK dan foto, lakukan pengundian nomor urut tampil otomatis, serta kendalikan live status mimbar.
-          </p>
+      {/* Header Minimalist */}
+      <div className="border-b border-white/[0.08] pb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[11px] font-mono tracking-widest uppercase text-emerald-400">
+            ROLE 03 • ADMIN PUSAT LPTQ
+          </span>
         </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          Panel Pengendalian & Manajemen Mimbar
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl mt-1.5 leading-relaxed">
+          Verifikasi berkas scan KTP/KK, pengundian nomor urut tampil peserta secara acak, dan kontrol live status mimbar perlombaan.
+        </p>
       </div>
 
-      {/* Admin Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200">
+      {/* Navigation Tabs - Antigravity Pill Bar */}
+      <div className="flex flex-wrap gap-1.5 p-1 bg-white/[0.03] rounded-full border border-white/[0.08] w-fit">
         <button
           onClick={() => setActiveTab('rekap')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
             activeTab === 'rekap'
-              ? 'bg-emerald-800 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <BarChart3 className="w-4 h-4" />
-          1. Dashboard Rekapitulasi Data
+          <BarChart3 className="w-3.5 h-3.5" />
+          Rekapitulasi Data
         </button>
+
         <button
           onClick={() => setActiveTab('validasi')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
             activeTab === 'validasi'
-              ? 'bg-emerald-800 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <FileCheck className="w-4 h-4" />
-          2. Validasi & Review Berkas ({totalMenunggu} Menunggu)
+          <FileCheck className="w-3.5 h-3.5" />
+          Validasi Berkas ({totalMenunggu})
         </button>
+
         <button
           onClick={() => setActiveTab('acak')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
             activeTab === 'acak'
-              ? 'bg-emerald-800 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <Shuffle className="w-4 h-4" />
-          3. Fitur Acak Urutan Tampil
+          <Shuffle className="w-3.5 h-3.5" />
+          Acak Nomor Tampil
         </button>
+
         <button
           onClick={() => setActiveTab('status')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
             activeTab === 'status'
-              ? 'bg-emerald-800 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+              ? 'bg-white text-black font-semibold'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
-          <Radio className="w-4 h-4" />
-          4. Manajemen Live Status Mimbar
+          <Radio className="w-3.5 h-3.5" />
+          Live Status Mimbar
         </button>
       </div>
 
-      {/* TAB 1: DASHBOARD REKAPITULASI DATA */}
+      {/* TAB 1: REKAPITULASI DATA */}
       {activeTab === 'rekap' && (
-        <div className="space-y-8 animate-in fade-in duration-200">
-          {/* Key Metrics Badges */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[11px] font-bold uppercase text-slate-600 block">Total Calon Official</span>
-              <span className="text-2xl font-black text-slate-900 mt-1 block">{totalCalon}</span>
-              <span className="text-[10px] text-slate-600 mt-1 block">Rekomendasi Kafilah</span>
+        <div className="space-y-8">
+          {/* Key Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="ag-card p-4 space-y-1">
+              <span className="text-[10px] font-mono text-zinc-400 uppercase">Calon Official</span>
+              <span className="text-xl font-bold font-mono text-white block">{totalCalon}</span>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[11px] font-bold uppercase text-slate-600 block">Peserta Terdaftar</span>
-              <span className="text-2xl font-black text-emerald-900 mt-1 block">{totalPeserta}</span>
-              <span className="text-[10px] text-emerald-800 mt-1 block">Formulir Lengkap</span>
+            <div className="ag-card p-4 space-y-1">
+              <span className="text-[10px] font-mono text-zinc-400 uppercase">Peserta Terdaftar</span>
+              <span className="text-xl font-bold font-mono text-white block">{totalPeserta}</span>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-emerald-300 bg-emerald-50/50 shadow-sm">
-              <span className="text-[11px] font-bold uppercase text-emerald-800 block">Terverifikasi</span>
-              <span className="text-2xl font-black text-emerald-700 mt-1 block">{totalTerverifikasi}</span>
-              <span className="text-[10px] text-emerald-800 mt-1 block">Siap Undian Tampil</span>
+            <div className="ag-card p-4 space-y-1">
+              <span className="text-[10px] font-mono text-emerald-400 uppercase">Terverifikasi</span>
+              <span className="text-xl font-bold font-mono text-emerald-400 block">{totalTerverifikasi}</span>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-amber-300 bg-amber-50/50 shadow-sm">
-              <span className="text-[11px] font-bold uppercase text-amber-800 block">Menunggu Review</span>
-              <span className="text-2xl font-black text-amber-700 mt-1 block">{totalMenunggu}</span>
-              <span className="text-[10px] text-amber-800 mt-1 block">Perlu Verifikasi</span>
+            <div className="ag-card p-4 space-y-1">
+              <span className="text-[10px] font-mono text-amber-400 uppercase">Menunggu Review</span>
+              <span className="text-xl font-bold font-mono text-amber-400 block">{totalMenunggu}</span>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-red-200 bg-red-50/50 shadow-sm">
-              <span className="text-[11px] font-bold uppercase text-red-800 block">Ditolak</span>
-              <span className="text-2xl font-black text-red-600 mt-1 block">{totalDitolak}</span>
-              <span className="text-[10px] text-red-800 mt-1 block">Berkas Bermasalah</span>
+            <div className="ag-card p-4 space-y-1">
+              <span className="text-[10px] font-mono text-red-400 uppercase">Ditolak</span>
+              <span className="text-xl font-bold font-mono text-red-400 block">{totalDitolak}</span>
             </div>
           </div>
 
-          {/* Graphical / Visual Distributions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Visual 1: Distribusi 10 Kabupaten/Kota Bengkulu */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Pengelompokan Peserta Berdasarkan Kabupaten/Kota
-                  </h3>
-                  <p className="text-[11px] text-slate-600">
-                    Sebaran kontingen 10 Kafilah se-Provinsi Bengkulu
-                  </p>
-                </div>
-                <MapPin className="w-4 h-4 text-emerald-700" />
-              </div>
+          {/* Minimalist Distribution Progress */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Kafilah Sebaran */}
+            <div className="ag-card p-6 space-y-4">
+              <span className="text-xs font-mono tracking-wider uppercase text-zinc-400 block">
+                DISTRIBUSI PESERTA PER KAFILAH (10 KABUPATEN/KOTA)
+              </span>
 
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2.5">
                 {DAFTAR_KAFILAH.map((kafilah) => {
                   const count = kafilahDistribution[kafilah] || 0;
                   const pct = totalPeserta > 0 ? (count / totalPeserta) * 100 : 0;
                   return (
-                    <div key={kafilah} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold text-slate-700">{kafilah}</span>
-                        <span className="font-bold text-slate-900">
-                          {count} Peserta ({pct.toFixed(0)}%)
-                        </span>
+                    <div key={kafilah} className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-300">{kafilah}</span>
+                        <span className="font-mono text-zinc-400">{count} ({pct.toFixed(0)}%)</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                          className="bg-emerald-500 h-1.5 rounded-full"
                           style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%` }}
                         ></div>
                       </div>
@@ -252,35 +221,25 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Visual 2: Distribusi 7 Cabang Perlombaan MTQ */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Pengelompokan Peserta Berdasarkan Cabang Perlombaan
-                  </h3>
-                  <p className="text-[11px] text-slate-600">
-                    Sebaran cabang Tilawah, Hifzhil, Kaligrafi, Syarhil, Fahmil, dll.
-                  </p>
-                </div>
-                <Layers className="w-4 h-4 text-amber-600" />
-              </div>
+            {/* Cabang Sebaran */}
+            <div className="ag-card p-6 space-y-4">
+              <span className="text-xs font-mono tracking-wider uppercase text-zinc-400 block">
+                DISTRIBUSI PESERTA PER CABANG LOMBA
+              </span>
 
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2.5">
                 {Object.keys(CABANG_DAN_GOLONGAN).map((cabang) => {
                   const count = cabangDistribution[cabang] || 0;
                   const pct = totalPeserta > 0 ? (count / totalPeserta) * 100 : 0;
                   return (
-                    <div key={cabang} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold text-slate-700">{cabang}</span>
-                        <span className="font-bold text-slate-900">
-                          {count} Peserta ({pct.toFixed(0)}%)
-                        </span>
+                    <div key={cabang} className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-300">{cabang}</span>
+                        <span className="font-mono text-zinc-400">{count} ({pct.toFixed(0)}%)</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                          className="bg-amber-400 h-1.5 rounded-full"
                           style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%` }}
                         ></div>
                       </div>
@@ -293,115 +252,100 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: FITUR VALIDASI DATA & REVIEW BERKAS (KTP/KK & FOTO) */}
+      {/* TAB 2: VALIDASI BERKAS */}
       {activeTab === 'validasi' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+        <div className="ag-card p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-white/[0.06]">
             <div>
-              <h3 className="text-base font-bold text-slate-900">
-                Tinjau & Validasi Berkas Pendaftaran Peserta
+              <h3 className="text-sm font-semibold text-white">
+                Validasi Berkas Pendaftaran Peserta
               </h3>
-              <p className="text-xs text-slate-600">
-                Periksa kesesuaian dokumen scan KTP / Kartu Keluarga dan Pas Foto resmi latar merah
+              <p className="text-[11px] text-zinc-400">
+                Tinjau scan KTP/KK dan pas foto latar merah
               </p>
             </div>
 
-            {/* Quick Filter */}
-            <div className="flex items-center gap-2">
-              <select
-                value={filterStatusVerif}
-                onChange={(e) => setFilterStatusVerif(e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium"
-              >
-                <option value="">Semua Status Verifikasi</option>
-                <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
-                <option value="Terverifikasi">Terverifikasi</option>
-                <option value="Ditolak">Ditolak</option>
-              </select>
-            </div>
+            <select
+              value={filterStatusVerif}
+              onChange={(e) => setFilterStatusVerif(e.target.value)}
+              className="ag-input py-1.5 text-xs"
+            >
+              <option value="" className="bg-[#10121a]">Semua Status</option>
+              <option value="Menunggu Verifikasi" className="bg-[#10121a]">Menunggu Verifikasi</option>
+              <option value="Terverifikasi" className="bg-[#10121a]">Terverifikasi</option>
+              <option value="Ditolak" className="bg-[#10121a]">Ditolak</option>
+            </select>
           </div>
 
-          {/* Peserta Table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
                 <tr>
-                  <th className="py-3 px-4">Peserta & Foto</th>
-                  <th className="py-3 px-4">Kafilah & Usia</th>
-                  <th className="py-3 px-4">Cabang & Golongan</th>
-                  <th className="py-3 px-4">Dokumen Wajib</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Tindakan Admin</th>
+                  <th className="py-2.5 px-3">Peserta</th>
+                  <th className="py-2.5 px-3">Kafilah & Usia</th>
+                  <th className="py-2.5 px-3">Cabang / Golongan</th>
+                  <th className="py-2.5 px-3">Dokumen</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 text-right">Tindakan</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/[0.04]">
                 {filteredPeserta.length > 0 ? (
                   filteredPeserta.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-12 rounded-lg bg-red-600 p-0.5 border border-red-700 shrink-0 overflow-hidden shadow-sm">
-                            <img
-                              src={p.fotoUrl}
-                              alt={p.namaLengkap}
-                              className="w-full h-full object-cover rounded"
-                            />
+                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-10 rounded bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden">
+                            <img src={p.fotoUrl} alt={p.namaLengkap} className="w-full h-full object-cover rounded" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{p.namaLengkap}</div>
-                            <div className="text-[10px] font-mono text-slate-600">
-                              {p.nomorRegistrasi}
-                            </div>
+                            <div className="font-medium text-white">{p.namaLengkap}</div>
+                            <div className="text-[10px] font-mono text-zinc-400">{p.nomorRegistrasi}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-800">{p.asalKafilah}</div>
-                        <div className="text-[10px] text-slate-600">
-                          {p.usia} Tahun ({p.jenisKelamin})
-                        </div>
+                      <td className="py-3 px-3">
+                        <div className="text-zinc-200">{p.asalKafilah}</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{p.usia} Th</div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-slate-800">{p.cabang}</div>
-                        <div className="text-[10px] text-emerald-800 font-bold">{p.golongan}</div>
+                      <td className="py-3 px-3">
+                        <div className="text-zinc-200">{p.cabang}</div>
+                        <div className="text-[10px] text-zinc-400">{p.golongan}</div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1 font-mono text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-700">
-                          <FileText className="w-3 h-3 text-emerald-700" />
-                          {p.berkasType} ({p.berkasFileName || `${p.berkasType}.pdf`})
-                        </span>
+                      <td className="py-3 px-3 font-mono text-[11px] text-zinc-300">
+                        Scan {p.berkasType}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono ${
                             p.statusVerifikasi === 'Terverifikasi'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                               : p.statusVerifikasi === 'Ditolak'
-                              ? 'bg-red-100 text-red-800 border border-red-300'
-                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                              ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}
                         >
                           {p.statusVerifikasi}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-3 text-right">
                         <button
                           onClick={() => {
                             setReviewingPeserta(p);
                             setCatatanTolak('Berkas scan kurang jelas / foto tidak sesuai ketentuan.');
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center gap-1.5 ml-auto shadow-sm"
+                          className="px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-zinc-200 text-xs font-medium border border-white/10 transition-colors inline-flex items-center gap-1.5"
                         >
-                          <Eye className="w-3.5 h-3.5 text-amber-300" />
-                          Tinjau Berkas
+                          <Eye className="w-3 h-3 text-zinc-400" />
+                          Tinjau
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-600">
-                      Tidak ada data peserta sesuai filter.
+                    <td colSpan={6} className="py-8 text-center text-zinc-400 text-xs">
+                      Tidak ada peserta yang cocok.
                     </td>
                   </tr>
                 )}
@@ -411,24 +355,22 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: FITUR ACAK URUTAN TAMPIL PESERTA (LOTTERY NUMBER) */}
+      {/* TAB 3: ACAK URUTAN TAMPIL */}
       {activeTab === 'acak' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 animate-in fade-in duration-200">
-          <div className="max-w-2xl">
-            <h3 className="text-base font-bold text-slate-900">
-              Pengundian Acak Nomor Urut Tampil Peserta
+        <div className="ag-card p-6 space-y-6">
+          <div className="max-w-xl">
+            <h3 className="text-sm font-semibold text-white">
+              Pengundian Acak Nomor Urut Tampil
             </h3>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              Sistem akan mengacak nomor undian tampil (1, 2, 3...) secara otomatis dan adil kepada peserta yang telah berstatus <strong>"Terverifikasi"</strong> pada cabang & golongan terkait.
+            <p className="text-xs text-zinc-400 mt-1">
+              Mengacak nomor urut tampil (1, 2, 3...) secara otomatis untuk seluruh peserta berstatus "Terverifikasi".
             </p>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 max-w-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white/[0.02] border border-white/[0.08] p-5 rounded-xl space-y-4 max-w-lg">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Pilih Cabang Lomba:
-                </label>
+                <label className="block text-[11px] text-zinc-400 mb-1">Cabang</label>
                 <select
                   value={lotteryCabang}
                   onChange={(e) => {
@@ -436,29 +378,23 @@ export const AdminDashboard: React.FC = () => {
                     setLotteryCabang(c);
                     setLotteryGolongan(CABANG_DAN_GOLONGAN[c]?.[0] || '');
                   }}
-                  className="w-full text-xs bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800"
+                  className="w-full ag-input"
                 >
                   {Object.keys(CABANG_DAN_GOLONGAN).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c} className="bg-[#10121a]">{c}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Pilih Golongan:
-                </label>
+                <label className="block text-[11px] text-zinc-400 mb-1">Golongan</label>
                 <select
                   value={lotteryGolongan}
                   onChange={(e) => setLotteryGolongan(e.target.value)}
-                  className="w-full text-xs bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800"
+                  className="w-full ag-input"
                 >
                   {CABANG_DAN_GOLONGAN[lotteryCabang]?.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
+                    <option key={g} value={g} className="bg-[#10121a]">{g}</option>
                   ))}
                 </select>
               </div>
@@ -467,53 +403,41 @@ export const AdminDashboard: React.FC = () => {
             <button
               onClick={handleRunLottery}
               disabled={isShuffling}
-              className={`w-full py-3.5 px-4 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-2.5 px-4 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
                 isShuffling
-                  ? 'bg-amber-500 text-white animate-pulse cursor-wait'
-                  : 'bg-emerald-800 hover:bg-emerald-900 text-white cursor-pointer hover:scale-[1.01]'
+                  ? 'bg-amber-400 text-black cursor-wait'
+                  : 'bg-white text-black hover:bg-zinc-200'
               }`}
             >
-              <Shuffle className={`w-4 h-4 text-amber-300 ${isShuffling ? 'animate-spin' : ''}`} />
-              {isShuffling ? 'Sedang Mengundi Acak Nomor Tampil...' : 'Acak Nomor Urut Tampil Otomatis'}
+              <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
+              {isShuffling ? 'Mengundi Nomor Tampil...' : 'Acak Nomor Tampil Otomatis'}
             </button>
 
             {lotteryResultMsg && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium leading-relaxed">
+              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-300">
                 {lotteryResultMsg}
               </div>
             )}
           </div>
 
-          {/* Preview Roster for Selected Category */}
-          <div className="pt-4 space-y-3">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Daftar Peserta & Nomor Urut Tampil ({lotteryCabang} - {lotteryGolongan})
-            </h4>
+          {/* Roster Preview */}
+          <div className="space-y-3 pt-2">
+            <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+              DAFTAR NOMOR TAMPIL ({lotteryCabang} - {lotteryGolongan})
+            </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {pesertaList
                 .filter((p) => p.cabang === lotteryCabang && p.golongan === lotteryGolongan)
                 .sort((a, b) => (a.nomorUrutTampil || 999) - (b.nomorUrutTampil || 999))
                 .map((p) => (
-                  <div
-                    key={p.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-4"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 flex flex-col items-center justify-center font-black border border-emerald-300">
-                      <span className="text-[9px] uppercase font-bold text-emerald-700">NO</span>
-                      <span className="text-base">{p.nomorUrutTampil || '-'}</span>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-xs text-slate-900 truncate">
-                        {p.namaLengkap}
-                      </div>
-                      <div className="text-[10px] text-slate-600 truncate">
-                        {p.asalKafilah}
-                      </div>
-                      <div className="text-[10px] font-semibold text-emerald-800 mt-0.5">
-                        Status: {p.statusVerifikasi}
-                      </div>
+                  <div key={p.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-white/[0.06] font-mono font-bold text-xs text-white flex items-center justify-center shrink-0">
+                      {p.nomorUrutTampil || '-'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-white truncate">{p.namaLengkap}</div>
+                      <div className="text-[10px] text-zinc-400 truncate">{p.asalKafilah}</div>
                     </div>
                   </div>
                 ))}
@@ -522,102 +446,90 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: MANAJEMEN LIVE STATUS MIMBAR ("Belum Tampil", "Sedang Tampil", "Sudah Tampil") */}
+      {/* TAB 4: MANAJEMEN LIVE STATUS MIMBAR */}
       {activeTab === 'status' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 animate-in fade-in duration-200">
-          <div className="max-w-2xl">
-            <h3 className="text-base font-bold text-slate-900">
-              Pengaturan Live Status Penampilan Peserta di Mimbar MTQ
+        <div className="ag-card p-6 space-y-4">
+          <div className="max-w-xl pb-2">
+            <h3 className="text-sm font-semibold text-white">
+              Manajemen Status Mimbar Penampilan
             </h3>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              Ubah status peserta untuk mengendalikan jalannya lomba.
-              <span className="text-red-700 font-bold ml-1">
-                "Sedang Tampil" akan mengaktifkan formulir penilaian Dewan Hakim. Mengubah ke "Sudah Tampil" akan mengunci nilai secara permanen.
-              </span>
+            <p className="text-xs text-zinc-400 mt-1">
+              "Sedang Tampil" mengaktifkan lembar nilai Dewan Hakim. Mengubah ke "Sudah Tampil" otomatis mengunci nilai secara permanen.
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
                 <tr>
-                  <th className="py-3 px-4">No. Tampil & Peserta</th>
-                  <th className="py-3 px-4">Cabang & Golongan</th>
-                  <th className="py-3 px-4">Mimbar Perlombaan</th>
-                  <th className="py-3 px-4">Status Tampil Saat Ini</th>
-                  <th className="py-3 px-4 text-right">Ubah Status Live</th>
+                  <th className="py-2.5 px-3">No & Peserta</th>
+                  <th className="py-2.5 px-3">Cabang / Golongan</th>
+                  <th className="py-2.5 px-3">Status Saat Ini</th>
+                  <th className="py-2.5 px-3 text-right">Ubah Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/[0.04]">
                 {pesertaList
                   .filter((p) => p.statusVerifikasi === 'Terverifikasi')
                   .sort((a, b) => (a.nomorUrutTampil || 999) - (b.nomorUrutTampil || 999))
                   .map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-900 font-black text-xs flex items-center justify-center shrink-0">
+                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-mono text-zinc-400 text-xs w-6">
                             {p.nomorUrutTampil || '-'}
                           </span>
                           <div>
-                            <div className="font-bold text-slate-900">{p.namaLengkap}</div>
-                            <div className="text-[10px] text-slate-600">{p.asalKafilah}</div>
+                            <div className="font-medium text-white">{p.namaLengkap}</div>
+                            <div className="text-[10px] text-zinc-400">{p.asalKafilah}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-slate-800">{p.cabang}</div>
-                        <div className="text-[10px] text-emerald-800 font-bold">{p.golongan}</div>
+                      <td className="py-3 px-3">
+                        <div className="text-zinc-200">{p.cabang}</div>
+                        <div className="text-[10px] text-zinc-400">{p.golongan}</div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="text-xs text-slate-700">
-                          {p.mimbar || 'Mimbar Utama MTQ Bengkulu'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono ${
                             p.statusTampil === 'Sedang Tampil'
-                              ? 'bg-red-600 text-white animate-pulse'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                               : p.statusTampil === 'Sudah Tampil'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-slate-100 text-slate-700 border border-slate-300'
+                              ? 'bg-white/[0.06] text-zinc-300 border border-white/10'
+                              : 'bg-white/[0.02] text-zinc-400 border border-white/[0.06]'
                           }`}
                         >
-                          {p.statusTampil === 'Sedang Tampil' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                          )}
                           {p.statusTampil}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="inline-flex rounded-xl shadow-sm border border-slate-300 overflow-hidden">
+                      <td className="py-3 px-3 text-right">
+                        <div className="inline-flex rounded-full bg-white/[0.03] border border-white/10 p-0.5">
                           <button
                             onClick={() => updateStatusTampil(p.id, 'Belum Tampil')}
-                            className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
                               p.statusTampil === 'Belum Tampil'
-                                ? 'bg-slate-800 text-white'
-                                : 'bg-white text-slate-700 hover:bg-slate-100'
+                                ? 'bg-white/[0.1] text-white font-bold'
+                                : 'text-zinc-400 hover:text-white'
                             }`}
                           >
                             Belum
                           </button>
                           <button
                             onClick={() => updateStatusTampil(p.id, 'Sedang Tampil')}
-                            className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
                               p.statusTampil === 'Sedang Tampil'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-white text-red-700 hover:bg-red-50'
+                                ? 'bg-emerald-500 text-black font-bold'
+                                : 'text-emerald-400 hover:text-emerald-300'
                             }`}
                           >
-                            Sedang Tampil
+                            Sedang
                           </button>
                           <button
                             onClick={() => updateStatusTampil(p.id, 'Sudah Tampil')}
-                            className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
                               p.statusTampil === 'Sudah Tampil'
-                                ? 'bg-emerald-700 text-white'
-                                : 'bg-white text-emerald-800 hover:bg-emerald-50'
+                                ? 'bg-white text-black font-bold'
+                                : 'text-zinc-400 hover:text-white'
                             }`}
                           >
                             Sudah
@@ -632,134 +544,82 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL REVIEW & VERIFIKASI BERKAS DATA */}
+      {/* Review Modal */}
       {reviewingPeserta && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start pb-4 border-b border-slate-100 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-[#10121a] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-white/10 space-y-5 text-zinc-200">
+            <div className="flex justify-between items-start pb-3 border-b border-white/10">
               <div>
-                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded uppercase">
-                  Verifikasi Berkas Calon
+                <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
+                  VERIFIKASI BERKAS
                 </span>
-                <h3 className="text-lg font-bold text-slate-900 mt-1">
-                  Tinjau Berkas: {reviewingPeserta.namaLengkap}
+                <h3 className="text-base font-bold text-white mt-0.5">
+                  {reviewingPeserta.namaLengkap}
                 </h3>
-                <p className="text-xs text-slate-600">
-                  {reviewingPeserta.nomorRegistrasi} • {reviewingPeserta.asalKafilah}
-                </p>
               </div>
               <button
                 onClick={() => setReviewingPeserta(null)}
-                className="text-slate-600 hover:text-slate-700 p-1 rounded-lg"
+                className="text-zinc-400 hover:text-white text-sm"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-6 text-xs">
-              {/* Photo & Identity Review */}
-              <div className="flex flex-col sm:flex-row gap-5 items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <div className="w-24 h-32 rounded-xl bg-red-600 p-1 border-2 border-red-700 shadow shrink-0 overflow-hidden">
-                  <img
-                    src={reviewingPeserta.fotoUrl}
-                    alt={reviewingPeserta.namaLengkap}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
+            <div className="space-y-4 text-xs">
+              <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
+                <div className="w-16 h-20 rounded bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden">
+                  <img src={reviewingPeserta.fotoUrl} alt={reviewingPeserta.namaLengkap} className="w-full h-full object-cover rounded" />
                 </div>
-                <div className="space-y-1.5 flex-1 text-slate-700">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-600">NIK:</span>
-                    <span className="font-mono font-bold">{reviewingPeserta.nik}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-600">Tempat, Tgl Lahir:</span>
-                    <span className="font-bold">
-                      {reviewingPeserta.tempatLahir}, {reviewingPeserta.tanggalLahir}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-600">Usia Terverifikasi:</span>
-                    <span className="font-bold text-emerald-800">
-                      {reviewingPeserta.usia} Tahun (
-                      {reviewingPeserta.usia >= 17 ? 'Wajib KTP' : 'Wajib KK'})
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-slate-600">Cabang & Golongan:</span>
-                    <span className="font-bold text-slate-900">
-                      {reviewingPeserta.cabang} - {reviewingPeserta.golongan}
-                    </span>
-                  </div>
+                <div className="space-y-1 text-zinc-300">
+                  <div>NIK: <span className="font-mono text-white">{reviewingPeserta.nik}</span></div>
+                  <div>Usia: <span className="font-mono text-white">{reviewingPeserta.usia} Tahun</span></div>
+                  <div>Cabang: <span className="text-white">{reviewingPeserta.cabang} - {reviewingPeserta.golongan}</span></div>
                 </div>
               </div>
 
-              {/* Document Review Preview */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800">
-                    Dokumen Identitas: Scan {reviewingPeserta.berkasType}
-                  </span>
-                  <span className="font-mono text-[10px] text-slate-600">
-                    {reviewingPeserta.berkasFileName || `${reviewingPeserta.berkasType}.pdf`}
-                  </span>
-                </div>
-
-                <div className="h-28 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-600 text-xs">
-                  <FileText className="w-8 h-8 text-emerald-700 mb-1" />
-                  <span className="font-semibold text-slate-700">
-                    Pratinjau Dokumen PDF Valid ({reviewingPeserta.berkasType})
-                  </span>
-                  <span className="text-[10px] text-slate-600">
-                    Format resmi LPTQ terenkripsi aman
-                  </span>
-                </div>
+              <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl flex items-center justify-between">
+                <span className="font-mono text-zinc-300">Dokumen: Scan {reviewingPeserta.berkasType} (.pdf)</span>
+                <span className="text-[10px] font-mono text-emerald-400">Valid</span>
               </div>
 
-              {/* Status Action Buttons */}
-              <div className="space-y-3 pt-2">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                    Catatan Verifikator Admin (Jika ditolak):
-                  </label>
-                  <input
-                    type="text"
-                    value={catatanTolak}
-                    onChange={(e) => setCatatanTolak(e.target.value)}
-                    className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium"
-                  />
-                </div>
+              <div>
+                <label className="block text-[11px] text-zinc-400 mb-1">Catatan Penolakan (Jika ditolak):</label>
+                <input
+                  type="text"
+                  value={catatanTolak}
+                  onChange={(e) => setCatatanTolak(e.target.value)}
+                  className="w-full ag-input"
+                />
+              </div>
 
-                <div className="flex gap-3 pt-3">
-                  <button
-                    onClick={() => {
-                      updateVerifikasi(reviewingPeserta.id, 'Ditolak', catatanTolak);
-                      setReviewingPeserta(null);
-                    }}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-bold text-xs border border-red-300 transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <XCircle className="w-4 h-4 text-red-600" />
-                    Tolak Pendaftaran
-                  </button>
-                  <button
-                    onClick={() => {
-                      updateVerifikasi(
-                        reviewingPeserta.id,
-                        'Terverifikasi',
-                        'Berkas lengkap dan sesuai ketentuan LPTQ Bengkulu.'
-                      );
-                      setReviewingPeserta(null);
-                      confetti({
-                        particleCount: 50,
-                        spread: 50,
-                        origin: { y: 0.6 },
-                      });
-                    }}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-amber-300" />
-                    Setujui & Verifikasi Berkas
-                  </button>
-                </div>
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  onClick={() => {
+                    updateVerifikasi(reviewingPeserta.id, 'Ditolak', catatanTolak);
+                    setReviewingPeserta(null);
+                  }}
+                  className="flex-1 py-2 px-4 rounded-full border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/10 transition-colors"
+                >
+                  Tolak Berkas
+                </button>
+                <button
+                  onClick={() => {
+                    updateVerifikasi(
+                      reviewingPeserta.id,
+                      'Terverifikasi',
+                      'Berkas lengkap dan sesuai ketentuan LPTQ Bengkulu.'
+                    );
+                    setReviewingPeserta(null);
+                    confetti({
+                      particleCount: 50,
+                      spread: 50,
+                      origin: { y: 0.6 },
+                    });
+                  }}
+                  className="flex-1 py-2 px-4 rounded-full bg-white text-black text-xs font-semibold hover:bg-zinc-200 transition-colors"
+                >
+                  Setujui & Verifikasi
+                </button>
               </div>
             </div>
           </div>

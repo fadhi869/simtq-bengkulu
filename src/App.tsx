@@ -8,85 +8,90 @@ import { PesertaRegistration } from './components/peserta/PesertaRegistration';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { JuriDashboard } from './components/juri/JuriDashboard';
 import type { UserRole } from './types';
-import { Radio, Users, UserCheck, ShieldCheck, Gavel, HelpCircle } from 'lucide-react';
+import { Radio, Users, UserCheck, ShieldCheck, Gavel } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { role, setRole } = useApp();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-100 relative selection:bg-emerald-500/20 selection:text-emerald-300">
+      {/* Background Subtle Dot Grid & Ambient Lighting */}
+      <div className="fixed inset-0 antigravity-grid opacity-60 pointer-events-none"></div>
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/[0.04] blur-[140px] rounded-full pointer-events-none"></div>
+
+      {/* Main Navbar */}
       <Navbar />
 
-      {/* Role Switcher Pill Bar for Quick Evaluation */}
-      <div className="bg-emerald-900/10 border-b border-emerald-900/15 py-2.5 px-4">
+      {/* Antigravity Minimalist Role Switcher Bar */}
+      <div className="relative z-10 border-b border-white/[0.06] bg-[#07080c]/60 backdrop-blur-md py-2.5 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
-            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <span>SIMULASI 4 ROLE USER:</span>
+          <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-400 uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>SIMULASI 4 PERAN PENGGUNA:</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => setRole('public')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 role === 'public'
-                  ? 'bg-emerald-800 text-white shadow-sm ring-1 ring-emerald-600'
-                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Radio className="w-3.5 h-3.5" />
+              <Radio className="w-3 h-3 text-emerald-600" />
               Laman Publik & Skor
             </button>
             <button
               onClick={() => setRole('official')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 role === 'official'
-                  ? 'bg-emerald-800 text-white shadow-sm ring-1 ring-emerald-600'
-                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Users className="w-3.5 h-3.5 text-amber-600" />
-              Role 1: Official Kafilah
+              <Users className="w-3 h-3 text-zinc-400" />
+              1. Official Kafilah
             </button>
             <button
               onClick={() => setRole('peserta')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 role === 'peserta'
-                  ? 'bg-emerald-800 text-white shadow-sm ring-1 ring-emerald-600'
-                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-              Role 2: Peserta
+              <UserCheck className="w-3 h-3 text-zinc-400" />
+              2. Peserta
             </button>
             <button
               onClick={() => setRole('admin')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 role === 'admin'
-                  ? 'bg-emerald-800 text-white shadow-sm ring-1 ring-emerald-600'
-                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
-              Role 3: Admin Pusat
+              <ShieldCheck className="w-3 h-3 text-zinc-400" />
+              3. Admin Pusat
             </button>
             <button
               onClick={() => setRole('juri')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 role === 'juri'
-                  ? 'bg-emerald-800 text-white shadow-sm ring-1 ring-emerald-600'
-                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Gavel className="w-3.5 h-3.5 text-amber-600" />
-              Role 4: Dewan Hakim
+              <Gavel className="w-3 h-3 text-zinc-400" />
+              4. Dewan Hakim
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Page Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {role === 'public' && <PublicHome />}
         {role === 'official' && <OfficialDashboard />}
         {role === 'peserta' && <PesertaRegistration />}
@@ -94,6 +99,7 @@ const MainContent: React.FC = () => {
         {role === 'juri' && <JuriDashboard />}
       </main>
 
+      {/* Footer */}
       <Footer />
     </div>
   );

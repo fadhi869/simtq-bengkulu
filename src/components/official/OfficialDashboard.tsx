@@ -4,15 +4,14 @@ import { DAFTAR_KAFILAH } from '../../data/constants';
 import {
   Users,
   UserPlus,
-  ShieldCheck,
   CheckCircle,
   Clock,
   Printer,
   Search,
   AlertCircle,
-  FileText,
   Trash2,
   Sparkles,
+  Lock,
 } from 'lucide-react';
 
 export const OfficialDashboard: React.FC = () => {
@@ -70,7 +69,6 @@ export const OfficialDashboard: React.FC = () => {
     }
   };
 
-  // Filter list by selected Kafilah and search query
   const filteredList = calonPesertaList.filter((item) => {
     const matchKafilah = !selectedKafilah || item.asalKafilah === selectedKafilah;
     const matchSearch =
@@ -85,43 +83,35 @@ export const OfficialDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-amber-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-3 border border-amber-400/30">
-            <Users className="w-3.5 h-3.5" />
-            ROLE 1: OFFICIAL KOTA / KABUPATEN
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
-            Pra-Pendaftaran & Penguncian Hak Akses Peserta
-          </h1>
-          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-normal">
-            Official bertindak sebagai otoritas awal yang menerbitkan rekomendasi resmi kafilah daerah.
-            <strong className="text-amber-300 font-bold ml-1">
-              Hanya calon peserta yang didaftarkan pada modul ini yang diizinkan melanjutkan pendaftaran lengkap di sistem.
-            </strong>
-          </p>
+      {/* Header Minimalist */}
+      <div className="border-b border-white/[0.08] pb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[11px] font-mono tracking-widest uppercase text-emerald-400">
+            ROLE 01 • OFFICIAL KAFILAH DAERAH
+          </span>
         </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          Pra-Pendaftaran & Otoritas Akses Peserta
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl mt-1.5 leading-relaxed">
+          Official menerbitkan rekomendasi resmi kafilah kabupaten/kota. Hanya nama dan NIK yang terdaftar pada tabel di bawah yang memiliki hak akses membuka formulir registrasi mandiri di sistem.
+        </p>
       </div>
 
-      {/* Kafilah Selector & Summary Badges */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Kafilah Selection & Metric Bar */}
+      <div className="ag-card p-4 sm:p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
           <div>
-            <label className="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">
-              Wilayah Kafilah yang Dikelola:
+            <label className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase block mb-1">
+              Kafilah Terpilih
             </label>
             <select
               value={selectedKafilah}
               onChange={(e) => setSelectedKafilah(e.target.value)}
-              className="text-base font-extrabold text-emerald-950 bg-transparent border-b-2 border-emerald-600 focus:outline-none cursor-pointer pr-4"
+              className="text-sm font-semibold text-white bg-transparent border-b border-white/20 pb-0.5 focus:outline-none focus:border-emerald-400 cursor-pointer"
             >
               {DAFTAR_KAFILAH.map((k) => (
-                <option key={k} value={k}>
+                <option key={k} value={k} className="bg-[#10121a]">
                   {k}
                 </option>
               ))}
@@ -129,59 +119,51 @@ export const OfficialDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs">
-            <span className="text-slate-600 font-medium">Total Rekomendasi: </span>
-            <strong className="text-slate-900 font-bold">{filteredList.length} Nama</strong>
+        <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <div className="bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/[0.08] text-zinc-300">
+            Total: <span className="font-bold text-white">{filteredList.length}</span>
           </div>
-          <div className="bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 text-xs">
-            <span className="text-emerald-800 font-medium">Sudah Registrasi: </span>
-            <strong className="text-emerald-900 font-bold">{registeredCount}</strong>
+          <div className="bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 text-emerald-300">
+            Terdaftar: <span className="font-bold">{registeredCount}</span>
           </div>
-          <div className="bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200 text-xs">
-            <span className="text-amber-800 font-medium">Belum Registrasi: </span>
-            <strong className="text-amber-900 font-bold">{pendingCount}</strong>
+          <div className="bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 text-amber-300">
+            Menunggu: <span className="font-bold">{pendingCount}</span>
           </div>
           <button
             onClick={() => setShowPrintModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-zinc-200 border border-white/10 transition-colors"
           >
-            <Printer className="w-4 h-4 text-amber-300" />
-            Cetak Rekomendasi
+            <Printer className="w-3.5 h-3.5" />
+            <span>Cetak Surat Rekomendasi</span>
           </button>
         </div>
       </div>
 
-      {/* Grid: Form Input vs Data Calon */}
+      {/* Grid: Form Input vs Roster Table */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left: Formulir Input Calon Peserta (5 Cols) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-md">
-          <div className="flex items-center gap-2 pb-4 border-b border-slate-100 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <UserPlus className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Input Calon Peserta Baru
-              </h2>
-              <p className="text-[11px] text-slate-600">
-                Terbitkan rekomendasi dan kunci hak registrasi
-              </p>
-            </div>
+        {/* Left: Form Input (5 Cols) */}
+        <div className="lg:col-span-5 ag-card p-6 space-y-5">
+          <div className="pb-3 border-b border-white/[0.06]">
+            <h2 className="text-sm font-semibold text-white">
+              Input Calon Peserta Kafilah
+            </h2>
+            <p className="text-[11px] text-zinc-400">
+              Kunci hak akses untuk pendaftaran peserta
+            </p>
           </div>
 
           {notification && (
             <div
-              className={`mb-5 p-3.5 rounded-xl text-xs flex items-start gap-2.5 ${
+              className={`p-3 rounded-xl text-xs flex items-start gap-2 ${
                 notification.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
-                  : 'bg-red-50 text-red-900 border border-red-200'
+                  ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                  : 'bg-red-500/10 text-red-300 border border-red-500/20'
               }`}
             >
               {notification.type === 'success' ? (
-                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               )}
               <div className="flex-1 font-medium leading-relaxed">{notification.message}</div>
             </div>
@@ -189,24 +171,24 @@ export const OfficialDashboard: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs text-zinc-300 font-medium mb-1.5">
                 Nama Lengkap Calon Peserta *
               </label>
               <input
                 type="text"
                 value={namaLengkap}
                 onChange={(e) => setNamaLengkap(e.target.value)}
-                placeholder="Contoh: Ahmad Rizki Fauzan"
-                className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                placeholder="Contoh: Muhammad Ilham Pratama"
+                className="w-full ag-input"
                 required
               />
-              <span className="text-[10px] text-slate-600 mt-1 block">
-                Nama harus persis sama dengan kartu identitas KTP/KK.
+              <span className="text-[10px] text-zinc-400 mt-1 block">
+                Harus sama persis dengan kartu identitas KTP/KK.
               </span>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs text-zinc-300 font-medium mb-1.5">
                 NIK Calon Peserta (16 Digit) *
               </label>
               <input
@@ -215,130 +197,124 @@ export const OfficialDashboard: React.FC = () => {
                 value={nik}
                 onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
                 placeholder="177101xxxxxxxxxx"
-                className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-medium"
+                className="w-full ag-input font-mono"
                 required
               />
-              <span className="text-[10px] text-slate-600 mt-1 block">
+              <span className="text-[10px] text-zinc-400 mt-1 block font-mono">
                 {nik.length}/16 digit terisi
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Nama Official Penanggungjawab:
+                <label className="block text-[11px] text-zinc-400 mb-1">
+                  Nama Official:
                 </label>
                 <input
                   type="text"
                   value={namaOfficial}
                   onChange={(e) => setNamaOfficial(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full ag-input"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  No. WhatsApp Official:
+                <label className="block text-[11px] text-zinc-400 mb-1">
+                  WhatsApp Official:
                 </label>
                 <input
                   type="text"
                   value={nomorKontakOfficial}
                   onChange={(e) => setNomorKontakOfficial(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full ag-input font-mono"
                 />
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="p-3 bg-white/[0.02] border border-white/[0.08] rounded-xl text-[11px] text-zinc-400 flex items-start gap-2 leading-relaxed">
+              <Lock className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
               <span>
-                <strong>Sistem Validasi Terkunci:</strong> Data yang diinput di sini akan menjadi kunci master. Peserta yang mencari namanya di formulir pendaftaran hanya dapat membuka formulir jika namanya terdaftar di tabel rekomendasi ini.
+                <strong>Sistem Validasi Terkunci:</strong> Peserta hanya dapat membuka formulir jika namanya telah diinput di daftar rekomendasi kafilah ini.
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold text-xs shadow-md shadow-emerald-900/20 transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
             >
-              <UserPlus className="w-4 h-4 text-amber-300" />
+              <UserPlus className="w-3.5 h-3.5" />
               Daftarkan Calon Peserta
             </button>
           </form>
 
-          {/* Quick Demo Pre-fill */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
-              Simulasi Cepat untuk Penguji:
-            </span>
+          {/* Quick Mock Filler */}
+          <div className="pt-4 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={() => {
                 const randomId = Math.floor(1000 + Math.random() * 9000);
-                setNamaLengkap(`Ahmad Fauzi Bengkulu ${randomId}`);
+                setNamaLengkap(`Fauzi Al-Bengkulu ${randomId}`);
                 setNik(`177101${randomId}000001`);
               }}
-              className="w-full text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full text-[11px] font-mono text-zinc-400 hover:text-white py-1.5 px-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] transition-colors flex items-center justify-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              Isi Data Calon Uji Coba Acak
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              Isi Data Simulasi Acak
             </button>
           </div>
         </div>
 
-        {/* Right: Tabel Daftar Calon Peserta (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-md space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+        {/* Right: Roster Table (7 Cols) */}
+        <div className="lg:col-span-7 ag-card p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-white/[0.06]">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-sm font-semibold text-white">
                 Daftar Rekomendasi Kafilah {selectedKafilah}
               </h2>
-              <p className="text-[11px] text-slate-600">
-                Memiliki hak validasi untuk pendaftaran mandiri peserta
+              <p className="text-[11px] text-zinc-400">
+                Memiliki hak akses pendaftaran mandiri
               </p>
             </div>
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full sm:w-56">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama / NIK..."
-                className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                className="w-full ag-input pl-8 py-1.5 text-xs"
               />
-              <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3 h-3 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
-          {/* Table List */}
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
                 <tr>
-                  <th className="py-2.5 px-3">Nama Calon Peserta</th>
+                  <th className="py-2.5 px-3">Nama Calon</th>
                   <th className="py-2.5 px-3">NIK</th>
-                  <th className="py-2.5 px-3">Status Registrasi</th>
+                  <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/[0.04]">
                 {filteredList.length > 0 ? (
                   filteredList.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-3">
-                        <div className="font-bold text-slate-900">{item.namaLengkap}</div>
-                        <div className="text-[10px] text-slate-600">ID: {item.id}</div>
+                        <div className="font-medium text-white">{item.namaLengkap}</div>
+                        <div className="text-[10px] font-mono text-zinc-400">{item.id}</div>
                       </td>
-                      <td className="py-3 px-3 font-mono font-medium text-slate-700">
+                      <td className="py-3 px-3 font-mono text-zinc-400">
                         {item.nik}
                       </td>
                       <td className="py-3 px-3">
                         {item.isRegistered ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            <CheckCircle className="w-3 h-3 text-emerald-600" />
-                            Sudah Registrasi Lengkap
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Terdaftar
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                            <Clock className="w-3 h-3 text-amber-600" />
-                            Menunggu Pendaftaran Mandiri
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            Belum Registrasi
                           </span>
                         )}
                       </td>
@@ -346,73 +322,62 @@ export const OfficialDashboard: React.FC = () => {
                         {!item.isRegistered ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => {
-                                setRole('peserta');
-                              }}
-                              className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors"
-                              title="Daftarkan Peserta Ini"
+                              onClick={() => setRole('peserta')}
+                              className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 underline"
                             >
-                              Daftarkan Sekarang →
+                              Daftar →
                             </button>
                             <button
                               onClick={() => deleteCalonPeserta(item.id)}
-                              className="text-slate-600 hover:text-red-600 p-1 rounded"
-                              title="Hapus Calon"
+                              className="text-zinc-500 hover:text-red-400 p-1"
+                              title="Hapus"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-slate-600 italic">
-                            Terkunci (Terdaftar)
-                          </span>
+                          <span className="text-[10px] font-mono text-zinc-400">Terkunci</span>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-slate-600">
-                      Tidak ada calon peserta untuk kafilah {selectedKafilah}.
+                    <td colSpan={4} className="py-8 text-center text-zinc-400 text-xs">
+                      Tidak ada calon peserta untuk {selectedKafilah}.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-
-          <div className="p-3 bg-slate-50 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
-            <span>
-              💡 <em>Klik "Daftarkan Sekarang" untuk berpindah ke Role 2 (Peserta) dan menguji alur verifikasi nama.</em>
-            </span>
-          </div>
         </div>
       </div>
 
       {/* Modal Cetak Surat Rekomendasi Kafilah */}
       {showPrintModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="text-center pb-6 border-b-2 border-slate-800 mb-6">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-[#10121a] rounded-2xl max-w-2xl w-full p-8 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto text-zinc-200">
+            <div className="text-center pb-6 border-b border-white/10 mb-6">
+              <h3 className="font-mono text-xs uppercase tracking-widest text-zinc-400">
                 Pemerintah Daerah Provinsi Bengkulu
               </h3>
-              <h2 className="text-lg font-black text-slate-900 uppercase">
+              <h2 className="text-lg font-bold text-white uppercase mt-1">
                 Lembaga Pengembangan Tilawatil Qur'an (LPTQ) {selectedKafilah}
               </h2>
-              <p className="text-[11px] text-slate-600 mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 Surat Rekomendasi Resmi Delegasi Kafilah MTQ Tingkat Provinsi Bengkulu Ke-XXXVI
               </p>
             </div>
 
-            <div className="space-y-4 text-xs text-slate-800 leading-relaxed">
+            <div className="space-y-4 text-xs leading-relaxed">
               <p>
-                Dengan ini menerangkan bahwa nama-nama terlampir di bawah ini adalah perwakilan resmi utusan Kafilah <strong>{selectedKafilah}</strong> yang telah melalui seleksi tingkat daerah dan direkomendasikan untuk mengikuti MTQ Tingkat Provinsi Bengkulu:
+                Dengan ini menerangkan bahwa nama-nama terlampir di bawah ini adalah perwakilan resmi utusan Kafilah <strong>{selectedKafilah}</strong> yang direkomendasikan untuk mengikuti MTQ Tingkat Provinsi Bengkulu:
               </p>
 
-              <div className="rounded-xl border border-slate-300 overflow-hidden">
+              <div className="rounded-xl border border-white/10 overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 font-bold border-b border-slate-300">
+                  <thead className="bg-white/[0.04] font-mono text-[10px] text-zinc-400 border-b border-white/10">
                     <tr>
                       <th className="py-2 px-3">No</th>
                       <th className="py-2 px-3">Nama Lengkap</th>
@@ -420,13 +385,13 @@ export const OfficialDashboard: React.FC = () => {
                       <th className="py-2 px-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-white/[0.04]">
                     {filteredList.map((item, idx) => (
                       <tr key={item.id}>
-                        <td className="py-1.5 px-3 font-semibold">{idx + 1}</td>
-                        <td className="py-1.5 px-3 font-bold">{item.namaLengkap}</td>
-                        <td className="py-1.5 px-3 font-mono">{item.nik}</td>
-                        <td className="py-1.5 px-3">
+                        <td className="py-2 px-3 font-mono">{idx + 1}</td>
+                        <td className="py-2 px-3 font-medium text-white">{item.namaLengkap}</td>
+                        <td className="py-2 px-3 font-mono text-zinc-400">{item.nik}</td>
+                        <td className="py-2 px-3 font-mono text-[11px]">
                           {item.isRegistered ? 'Terdaftar' : 'Belum Registrasi'}
                         </td>
                       </tr>
@@ -435,34 +400,33 @@ export const OfficialDashboard: React.FC = () => {
                 </table>
               </div>
 
-              <div className="pt-6 flex justify-between items-end text-xs">
+              <div className="pt-6 flex justify-between items-end text-xs text-zinc-400">
                 <div>
-                  <p className="text-slate-600">Dikeluarkan di: {selectedKafilah}</p>
-                  <p className="text-slate-600">Tanggal: {new Date().toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
+                  <p>Dikeluarkan di: {selectedKafilah}</p>
+                  <p>Tanggal: {new Date().toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-slate-700">Official Kafilah,</p>
-                  <div className="h-16 flex items-center justify-center italic text-slate-600">
-                    (Tanda Tangan & Cap Basah)
+                  <p className="text-zinc-300">Official Kafilah,</p>
+                  <div className="h-14 flex items-center justify-center italic text-zinc-600">
+                    (Tanda Tangan)
                   </div>
-                  <p className="font-bold underline text-slate-900">{namaOfficial}</p>
-                  <p className="text-[10px] text-slate-600">NIP. 19780512 200501 1 004</p>
+                  <p className="font-semibold text-white">{namaOfficial}</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-3">
+            <div className="mt-8 pt-4 border-t border-white/10 flex justify-end gap-2.5">
               <button
                 onClick={() => setShowPrintModal(false)}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs"
+                className="px-4 py-2 rounded-full border border-white/10 text-zinc-300 font-medium text-xs hover:bg-white/[0.06]"
               >
                 Tutup
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center gap-1.5 shadow"
+                className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors flex items-center gap-1.5"
               >
-                <Printer className="w-4 h-4 text-amber-300" />
+                <Printer className="w-3.5 h-3.5" />
                 Cetak Dokumen
               </button>
             </div>

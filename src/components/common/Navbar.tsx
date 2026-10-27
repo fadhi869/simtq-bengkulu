@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { UserRole } from '../../types';
 import {
-  Award,
+  Radio,
   Users,
   UserCheck,
   ShieldCheck,
   Gavel,
-  Radio,
   RotateCcw,
   Menu,
   X,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -22,121 +20,85 @@ export const Navbar: React.FC = () => {
 
   const activePeserta = getActivePesertaTampil();
 
-  const roleNavItems: { id: UserRole; label: string; icon: React.ReactNode; desc: string; badge?: string }[] = [
+  const roleNavItems: { id: UserRole; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
       id: 'public',
-      label: 'Laman Utama & Skor',
-      icon: <Radio className="w-4 h-4" />,
-      desc: 'Live arena & Papan Skor Publik',
-      badge: activePeserta.length > 0 ? `${activePeserta.length} Live` : undefined,
+      label: 'Live Arena & Skor',
+      icon: <Radio className="w-3.5 h-3.5" />,
+      badge: activePeserta.length > 0 ? `${activePeserta.length} LIVE` : undefined,
     },
     {
       id: 'official',
       label: 'Official Kafilah',
-      icon: <Users className="w-4 h-4" />,
-      desc: 'Pra-pendaftaran Kontingen Daerah',
+      icon: <Users className="w-3.5 h-3.5" />,
     },
     {
       id: 'peserta',
       label: 'Pendaftaran Peserta',
-      icon: <UserCheck className="w-4 h-4" />,
-      desc: 'Verifikasi & Lengkapi Formulir',
+      icon: <UserCheck className="w-3.5 h-3.5" />,
     },
     {
       id: 'admin',
-      label: 'Admin Pusat (LPTQ)',
-      icon: <ShieldCheck className="w-4 h-4" />,
-      desc: 'Rekap, Verifikasi & Acak Tampil',
+      label: 'Admin Pusat',
+      icon: <ShieldCheck className="w-3.5 h-3.5" />,
     },
     {
       id: 'juri',
       label: 'Dewan Hakim',
-      icon: <Gavel className="w-4 h-4" />,
-      desc: 'Input Nilai Peserta Tampil',
+      icon: <Gavel className="w-3.5 h-3.5" />,
     },
   ];
 
   return (
     <>
-      {/* Top Banner Provinsi Bengkulu */}
-      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-amber-950 text-amber-200 text-xs py-1.5 px-4 border-b border-amber-600/30">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-semibold text-white tracking-wide">
-              LEMBAGA PENGEMBANGAN TILAWATIL QUR'AN (LPTQ) PROVINSI BENGKULU
-            </span>
-            <span className="hidden md:inline text-amber-400/70">|</span>
-            <span className="hidden md:inline text-amber-200/90 font-medium">
-              Musabaqah Tilawatil Qur'an (MTQ) Ke-XXXVI Tingkat Provinsi
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {activePeserta.length > 0 && (
-              <span className="bg-red-600/90 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                {activePeserta.length} Peserta Sedang Tampil
-              </span>
-            )}
-            <button
-              onClick={() => setShowResetConfirm(true)}
-              className="text-[11px] text-amber-300 hover:text-white flex items-center gap-1 transition-colors px-2 py-0.5 rounded bg-emerald-900/60 hover:bg-emerald-800 border border-amber-500/30"
-              title="Reset ke Mock Data Awal"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset Demo Data
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-emerald-900/10 shadow-sm">
+      {/* Sleek Floating / Sticky Header */}
+      <header className="sticky top-0 z-40 bg-[#07080c]/80 backdrop-blur-xl border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo and Branding */}
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            {/* Brand Logo & Title */}
             <div
               onClick={() => setRole('public')}
-              className="flex items-center gap-3.5 cursor-pointer group"
+              className="flex items-center gap-3 cursor-pointer group"
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-800 via-emerald-700 to-amber-600 flex items-center justify-center shadow-md shadow-emerald-900/20 group-hover:scale-105 transition-transform duration-200 border border-amber-300/40">
-                <span className="text-2xl text-amber-200 font-serif font-bold">م</span>
+              <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center group-hover:border-emerald-500/40 transition-colors">
+                <span className="text-emerald-400 font-serif font-bold text-lg">م</span>
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xl font-extrabold tracking-tight text-emerald-950 font-sans">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-white tracking-tight font-sans">
                     SIMTQ
                   </span>
-                  <span className="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-300">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
                     BENGKULU
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 font-medium">
-                  Sistem Pendaftaran & Penilaian MTQ Provinsi Bengkulu
-                </p>
+                <span className="text-[11px] text-zinc-400 hidden sm:block font-normal">
+                  Sistem Pendaftaran & Penilaian Lomba MTQ
+                </span>
               </div>
             </div>
 
-            {/* Desktop Navigation / Role Switcher */}
-            <nav className="hidden lg:flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80">
+            {/* Desktop Navigation - Minimalist Segmented Pill */}
+            <nav className="hidden lg:flex items-center gap-1 bg-white/[0.03] p-1 rounded-full border border-white/[0.08]">
               {roleNavItems.map((item) => {
                 const isActive = role === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => setRole(item.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 relative ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-gradient-to-r from-emerald-800 to-emerald-700 text-white shadow-md shadow-emerald-900/20 ring-1 ring-emerald-600'
-                        : 'text-slate-700 hover:text-emerald-900 hover:bg-white/80'
+                        ? 'bg-white text-black font-semibold shadow-sm'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                     }`}
                   >
-                    <span className={isActive ? 'text-amber-300' : 'text-emerald-700'}>
+                    <span className={isActive ? 'text-emerald-700' : 'text-zinc-400'}>
                       {item.icon}
                     </span>
                     <span>{item.label}</span>
                     {item.badge && (
-                      <span className="ml-0.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                      <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-mono px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
                         {item.badge}
                       </span>
                     )}
@@ -145,28 +107,38 @@ export const Navbar: React.FC = () => {
               })}
             </nav>
 
-            {/* Quick Role Switcher Selector for Mobile & Tablet */}
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="relative">
+            {/* Right Controls */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 transition-colors"
+                title="Reset ke Mock Data Awal"
+              >
+                <RotateCcw className="w-3 h-3 text-zinc-400" />
+                <span className="font-mono text-[11px]">Reset Data</span>
+              </button>
+
+              {/* Mobile Role Dropdown */}
+              <div className="relative lg:hidden">
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 rounded-lg px-2.5 py-2 pr-7 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="text-xs bg-[#10121a] text-zinc-200 border border-white/10 rounded-full px-3 py-1.5 pr-7 appearance-none focus:outline-none"
                 >
-                  <option value="public">🌐 Publik / Leaderboard</option>
-                  <option value="official">🏢 Role 1: Official Kafilah</option>
-                  <option value="peserta">👤 Role 2: Peserta</option>
-                  <option value="admin">⚙️ Role 3: Admin Pusat</option>
-                  <option value="juri">⚖️ Role 4: Dewan Hakim</option>
+                  <option value="public">🌐 Publik / Skor</option>
+                  <option value="official">🏢 1. Official</option>
+                  <option value="peserta">👤 2. Peserta</option>
+                  <option value="admin">⚙️ 3. Admin</option>
+                  <option value="juri">⚖️ 4. Juri</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-emerald-800 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] lg:hidden"
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -174,9 +146,9 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-2">
-            <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-2">
-              Pilih Peran / Akses Modul:
+          <div className="lg:hidden border-t border-white/[0.08] bg-[#0c0e14] px-4 py-4 space-y-1.5">
+            <p className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase mb-2">
+              PILIH MODUL / PERAN:
             </p>
             {roleNavItems.map((item) => {
               const isActive = role === item.id;
@@ -187,25 +159,18 @@ export const Navbar: React.FC = () => {
                     setRole(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl text-left text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-emerald-800 text-white font-bold'
-                      : 'bg-slate-50 text-slate-800 hover:bg-slate-100'
+                      ? 'bg-white text-black font-semibold'
+                      : 'text-zinc-300 hover:bg-white/[0.04]'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className={isActive ? 'text-amber-300' : 'text-emerald-700'}>
-                      {item.icon}
-                    </span>
-                    <div>
-                      <div className="font-semibold">{item.label}</div>
-                      <div className={`text-xs ${isActive ? 'text-emerald-200' : 'text-slate-600'}`}>
-                        {item.desc}
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">
                       {item.badge}
                     </span>
                   )}
@@ -218,21 +183,18 @@ export const Navbar: React.FC = () => {
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-4">
-              <RotateCcw className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
-              Reset Semua Data ke Mock Awal?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-[#10121a] rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-white/10">
+            <h3 className="text-base font-semibold text-white mb-2">
+              Reset Semua Data Demo?
             </h3>
-            <p className="text-sm text-slate-600 text-center mb-6 leading-relaxed">
-              Tindakan ini akan mengembalikan data Calon Peserta, Peserta Terdaftar, Nilai Dewan Hakim, dan Status Arena ke kondisi awal simulasi.
+            <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+              Tindakan ini akan mengembalikan data calon peserta, berkas, status mimbar, dan lembar nilai ke kondisi awal simulasi.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2.5">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50"
+                className="flex-1 px-4 py-2 rounded-full border border-white/10 text-zinc-300 font-medium text-xs hover:bg-white/[0.06] transition-colors"
               >
                 Batal
               </button>
@@ -241,9 +203,9 @@ export const Navbar: React.FC = () => {
                   resetAllData();
                   setShowResetConfirm(false);
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm shadow-md"
+                className="flex-1 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors"
               >
-                Ya, Reset Data
+                Ya, Reset
               </button>
             </div>
           </div>
