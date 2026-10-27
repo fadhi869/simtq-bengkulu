@@ -5,37 +5,94 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-page: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+  }
+
+  .dark {
+    --bg-page: #07080c;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --card-bg: rgba(14, 16, 23, 0.85);
+    --card-border: rgba(255, 255, 255, 0.08);
+  }
+
   body {
-    @apply bg-[#07080c] text-zinc-100 antialiased font-sans selection:bg-emerald-500/20 selection:text-emerald-300;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    @apply antialiased font-sans transition-colors duration-300;
     min-height: 100vh;
     letter-spacing: -0.01em;
   }
 }
 
+/* Light Mode Automatic Contrast Harmonization */
+html:not(.dark) label.text-zinc-300,
+html:not(.dark) label.text-zinc-400,
+html:not(.dark) p.text-zinc-400,
+html:not(.dark) span.text-zinc-400,
+html:not(.dark) div.text-zinc-400,
+html:not(.dark) span.text-zinc-300,
+html:not(.dark) p.text-zinc-300 {
+  color: #475569 !important;
+}
+
+html:not(.dark) h1.text-white,
+html:not(.dark) h2.text-white,
+html:not(.dark) h3.text-white,
+html:not(.dark) h4.text-white,
+html:not(.dark) h5.text-white {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .border-white\/\[0\.08\],
+html:not(.dark) .border-white\/\[0\.06\],
+html:not(.dark) .border-white\/10 {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .bg-white\/\[0\.02\],
+html:not(.dark) .bg-white\/\[0\.03\],
+html:not(.dark) .bg-white\/\[0\.04\] {
+  background-color: #f8fafc !important;
+}
+
 /* Antigravity Minimalist Dot Grid */
 .antigravity-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
   background-size: 32px 32px;
   background-position: 0 0;
 }
 
+.dark .antigravity-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+}
+
 /* Ambient Radial Glow */
 .ambient-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, rgba(245, 158, 11, 0.04) 40%, transparent 70%);
+}
+
+.dark .ambient-glow {
   background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(245, 158, 11, 0.03) 40%, transparent 70%);
 }
 
-/* Minimalist Dark Card Surface */
+/* Minimalist Card Surface */
 .ag-card {
-  @apply bg-[#0e1017]/80 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.16] transition-all duration-300 rounded-2xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)];
+  @apply bg-white dark:bg-[#0e1017]/85 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] transition-all duration-300 rounded-2xl shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)];
 }
 
 .ag-card-glow {
-  @apply bg-[#0e1017]/90 backdrop-blur-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 rounded-2xl shadow-[0_0_30px_-5px_rgba(16,185,129,0.12),inset_0_1px_0_0_rgba(255,255,255,0.06)];
+  @apply bg-white dark:bg-[#0e1017]/90 backdrop-blur-xl border border-emerald-500/30 dark:border-emerald-500/20 hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-all duration-300 rounded-2xl shadow-lg shadow-emerald-500/5 dark:shadow-[0_0_30px_-5px_rgba(16,185,129,0.12),inset_0_1px_0_0_rgba(255,255,255,0.06)];
 }
 
 /* Input Styling */
 .ag-input {
-  @apply bg-white/[0.03] border border-white/10 hover:border-white/20 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 font-medium transition-all outline-none;
+  @apply bg-slate-50 border border-slate-200/90 hover:border-slate-300 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 text-slate-800 dark:bg-white/[0.03] dark:border-white/10 dark:hover:border-white/20 dark:focus:border-emerald-500/50 dark:focus:ring-emerald-500/20 dark:text-white rounded-xl px-3.5 py-2.5 text-xs placeholder-slate-400 dark:placeholder-zinc-500 font-medium transition-all outline-none;
 }
 
 /* Pill Badge */
@@ -43,18 +100,24 @@
   @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono tracking-wider uppercase border;
 }
 
-/* Sleek Dark Scrollbar */
+/* Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #07080c;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }

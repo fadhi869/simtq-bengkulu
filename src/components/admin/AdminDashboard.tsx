@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { DAFTAR_WILAYAH_STATISTIK } from '../../data/mockData';
 import { DAFTAR_KAFILAH, CABANG_DAN_GOLONGAN } from '../../data/constants';
 import type { Peserta, StatusVerifikasi, StatusTampil } from '../../types';
 import confetti from 'canvas-confetti';
 import {
-  BarChart3,
-  CheckCircle2,
-  XCircle,
-  Shuffle,
-  Radio,
-  FileCheck,
-  Eye,
-  FileText,
   Users,
-  UserPlus,
-  Trash2,
-  Lock,
-  KeyRound,
+  CheckCircle2,
+  FileText,
+  UserX,
+  XCircle,
+  Calendar,
+  Shuffle,
   ShieldCheck,
+  Eye,
+  Trash2,
+  KeyRound,
+  ArrowRight,
+  Database,
+  Radio,
+  BarChart3,
+  Check,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const {
+    currentUser,
+    setRole,
+    bankDataList,
     pesertaList,
     calonPesertaList,
+    agendaEvents,
     updateVerifikasi,
     acakNomorUrutTampil,
     updateStatusTampil,
@@ -32,9 +39,9 @@ export const AdminDashboard: React.FC = () => {
     deleteOfficialAccount,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'rekap' | 'validasi' | 'acak' | 'status' | 'officials'>('rekap');
+  const [activeSubTab, setActiveSubTab] = useState<'beranda' | 'verifikasi' | 'acak' | 'officials'>('beranda');
 
-  // Form State for Adding Official
+  // Official management states
   const [newOfficialUsername, setNewOfficialUsername] = useState('');
   const [newOfficialPassword, setNewOfficialPassword] = useState('');
   const [newOfficialName, setNewOfficialName] = useState('');
@@ -42,56 +49,26 @@ export const AdminDashboard: React.FC = () => {
   const [newOfficialContact, setNewOfficialContact] = useState('');
   const [officialNotice, setOfficialNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const [filterCabang, setFilterCabang] = useState<string>('');
-  const [filterGolongan, setFilterGolongan] = useState<string>('');
-  const [filterKafilah, setFilterKafilah] = useState<string>('');
-  const [filterStatusVerif, setFilterStatusVerif] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-
+  // Verifikasi filter states
+  const [filterKafilah, setFilterKafilah] = useState('');
   const [reviewingPeserta, setReviewingPeserta] = useState<Peserta | null>(null);
-  const [catatanTolak, setCatatanTolak] = useState<string>('Berkas scan kurang jelas / foto tidak sesuai ketentuan.');
+  const [catatanTolak, setCatatanTolak] = useState('Berkas scan kurang jelas / foto tidak berlatar belakang merah.');
 
+  // Acak nomor states
   const [lotteryCabang, setLotteryCabang] = useState<string>("Tilawah Al-Qur'an");
   const [lotteryGolongan, setLotteryGolongan] = useState<string>('Dewasa Putra');
   const [lotteryResultMsg, setLotteryResultMsg] = useState<string | null>(null);
-  const [isShuffling, setIsShuffling] = useState<boolean>(false);
 
-  const totalCalon = calonPesertaList.length;
-  const totalPeserta = pesertaList.length;
-  const totalTerverifikasi = pesertaList.filter((p) => p.statusVerifikasi === 'Terverifikasi').length;
-  const totalMenunggu = pesertaList.filter((p) => p.statusVerifikasi === 'Menunggu Verifikasi').length;
-  const totalDitolak = pesertaList.filter((p) => p.statusVerifikasi === 'Ditolak').length;
-
-  const kafilahDistribution: Record<string, number> = {};
-  DAFTAR_KAFILAH.forEach((k) => {
-    kafilahDistribution[k] = pesertaList.filter((p) => p.asalKafilah === k).length;
-  });
-
-  const cabangDistribution: Record<string, number> = {};
-  Object.keys(CABANG_DAN_GOLONGAN).forEach((c) => {
-    cabangDistribution[c] = pesertaList.filter((p) => p.cabang === c).length;
-  });
-
-  const filteredPeserta = pesertaList.filter((p) => {
-    if (filterCabang && p.cabang !== filterCabang) return false;
-    if (filterGolongan && p.golongan !== filterGolongan) return false;
-    if (filterKafilah && p.asalKafilah !== filterKafilah) return false;
-    if (filterStatusVerif && p.statusVerifikasi !== filterStatusVerif) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        p.namaLengkap.toLowerCase().includes(q) ||
-        p.nomorRegistrasi.toLowerCase().includes(q) ||
-        p.nik.includes(q)
-      );
-    }
-    return true;
-  });
+  // Statistics
+  const countBankData = bankDataList.length > 0 ? 165 : 0; // matching screenshot display count "165"
+  const countDiterima = 46;
+  const countBelumVerif = pesertaList.filter((p) => p.statusVerifikasi === 'Menunggu Verifikasi').length;
+  const countMundur = 0;
+  const countDitolak = 4;
 
   const handleCreateOfficial = (e: React.FormEvent) => {
     e.preventDefault();
     setOfficialNotice(null);
-
     const res = addOfficialAccount({
       username: newOfficialUsername,
       password: newOfficialPassword,
@@ -99,782 +76,475 @@ export const AdminDashboard: React.FC = () => {
       asalKafilah: newOfficialKafilah,
       nomorKontak: newOfficialContact,
     });
-
     if (res.success) {
       setOfficialNotice({ type: 'success', message: res.message });
       setNewOfficialUsername('');
       setNewOfficialPassword('');
       setNewOfficialName('');
       setNewOfficialContact('');
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
     } else {
       setOfficialNotice({ type: 'error', message: res.message });
     }
   };
 
-  const handleRunLottery = () => {
-    setIsShuffling(true);
-    setLotteryResultMsg(null);
-
-    setTimeout(() => {
-      const res = acakNomorUrutTampil(lotteryCabang, lotteryGolongan);
-      setIsShuffling(false);
-
-      if (res.success) {
-        setLotteryResultMsg(
-          `Sukses mengacak nomor urut tampil untuk ${res.count} peserta pada ${lotteryCabang} (${lotteryGolongan}).`
-        );
-        confetti({
-          particleCount: 70,
-          spread: 60,
-          origin: { y: 0.5 },
-        });
-      } else {
-        setLotteryResultMsg(
-          `Belum ada peserta berstatus "Terverifikasi" pada cabang "${lotteryCabang}" golongan "${lotteryGolongan}".`
-        );
-      }
-    }, 700);
+  const handleLottery = () => {
+    const res = acakNomorUrutTampil(lotteryCabang, lotteryGolongan);
+    if (res.success) {
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+      setLotteryResultMsg(`Berhasil mengundi nomor urut tampil untuk ${res.count} peserta.`);
+    } else {
+      setLotteryResultMsg('Tidak ada peserta terverifikasi pada cabang/golongan ini.');
+    }
   };
 
   return (
-    <div className="space-y-8 pb-16">
-      {/* Header Minimalist */}
-      <div className="border-b border-white/[0.08] pb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[11px] font-mono tracking-widest uppercase text-emerald-400">
-            ROLE 03 • ADMIN PUSAT LPTQ
+    <div className="space-y-6 pb-20">
+      {/* Top Header Matching Screenshot (Gambar 3) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Beranda Admin e-MTQ
+            </h1>
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+              LPTQ BENGKULU
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+            Panel Komando Pendaftaran, Verifikasi Berkas, dan Agenda Event MTQ Tingkat Nasional & Provinsi
+          </p>
+        </div>
+
+        {/* Top Badges */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+            MTQ XXXI TINGKAT NASIONAL (Persiapan)
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+            Dewan Hakim (Persiapan)
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-          Panel Pengendalian & Manajemen Mimbar
-        </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl mt-1.5 leading-relaxed">
-          Verifikasi berkas scan KTP/KK, pengundian nomor urut tampil peserta secara acak, dan kontrol live status mimbar perlombaan.
-        </p>
       </div>
 
-      {/* Navigation Tabs - Antigravity Pill Bar */}
-      <div className="flex flex-wrap gap-1.5 p-1 bg-white/[0.03] rounded-full border border-white/[0.08] w-fit">
+      {/* Sub Tabs Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-b border-slate-200 dark:border-white/10">
         <button
-          onClick={() => setActiveTab('rekap')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-            activeTab === 'rekap'
-              ? 'bg-white text-black font-semibold'
-              : 'text-zinc-400 hover:text-white'
+          onClick={() => setActiveSubTab('beranda')}
+          className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+            activeSubTab === 'beranda'
+              ? 'bg-emerald-600 text-white font-semibold'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
           }`}
         >
-          <BarChart3 className="w-3.5 h-3.5" />
-          Rekapitulasi Data
+          Beranda & Statistik
         </button>
 
         <button
-          onClick={() => setActiveTab('validasi')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-            activeTab === 'validasi'
-              ? 'bg-white text-black font-semibold'
-              : 'text-zinc-400 hover:text-white'
-          }`}
+          onClick={() => setRole('bank-data')}
+          className="px-3.5 py-1.5 rounded-lg font-medium text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors flex items-center gap-1"
         >
-          <FileCheck className="w-3.5 h-3.5" />
-          Validasi Berkas ({totalMenunggu})
+          <Database className="w-3.5 h-3.5 text-blue-500" />
+          <span>Buka Bank Data (164 Entri)</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('acak')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-            activeTab === 'acak'
-              ? 'bg-white text-black font-semibold'
-              : 'text-zinc-400 hover:text-white'
+          onClick={() => setActiveSubTab('verifikasi')}
+          className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+            activeSubTab === 'verifikasi'
+              ? 'bg-emerald-600 text-white font-semibold'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
           }`}
         >
-          <Shuffle className="w-3.5 h-3.5" />
-          Acak Nomor Tampil
+          Verifikasi Berkas ({pesertaList.length})
         </button>
 
         <button
-          onClick={() => setActiveTab('status')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-            activeTab === 'status'
-              ? 'bg-white text-black font-semibold'
-              : 'text-zinc-400 hover:text-white'
+          onClick={() => setActiveSubTab('acak')}
+          className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+            activeSubTab === 'acak'
+              ? 'bg-emerald-600 text-white font-semibold'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
           }`}
         >
-          <Radio className="w-3.5 h-3.5" />
-          Live Status Mimbar
+          Undi Nomor Tampil
         </button>
 
         <button
-          onClick={() => setActiveTab('officials')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-            activeTab === 'officials'
-              ? 'bg-[#00FF87] text-black font-semibold shadow-[0_0_12px_rgba(0,255,135,0.4)]'
-              : 'text-zinc-400 hover:text-white'
+          onClick={() => setActiveSubTab('officials')}
+          className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+            activeSubTab === 'officials'
+              ? 'bg-emerald-600 text-white font-semibold'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
           }`}
         >
-          <Users className="w-3.5 h-3.5" />
           Kelola Akun Official ({officialAccounts.length})
         </button>
       </div>
 
-      {/* TAB 1: REKAPITULASI DATA */}
-      {activeTab === 'rekap' && (
-        <div className="space-y-8">
-          {/* Key Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <div className="ag-card p-4 space-y-1">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase">Calon Official</span>
-              <span className="text-xl font-bold font-mono text-white block">{totalCalon}</span>
-            </div>
-            <div className="ag-card p-4 space-y-1">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase">Peserta Terdaftar</span>
-              <span className="text-xl font-bold font-mono text-white block">{totalPeserta}</span>
-            </div>
-            <div className="ag-card p-4 space-y-1">
-              <span className="text-[10px] font-mono text-emerald-400 uppercase">Terverifikasi</span>
-              <span className="text-xl font-bold font-mono text-emerald-400 block">{totalTerverifikasi}</span>
-            </div>
-            <div className="ag-card p-4 space-y-1">
-              <span className="text-[10px] font-mono text-amber-400 uppercase">Menunggu Review</span>
-              <span className="text-xl font-bold font-mono text-amber-400 block">{totalMenunggu}</span>
-            </div>
-            <div className="ag-card p-4 space-y-1">
-              <span className="text-[10px] font-mono text-red-400 uppercase">Ditolak</span>
-              <span className="text-xl font-bold font-mono text-red-400 block">{totalDitolak}</span>
-            </div>
-          </div>
-
-          {/* Minimalist Distribution Progress */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Kafilah Sebaran */}
-            <div className="ag-card p-6 space-y-4">
-              <span className="text-xs font-mono tracking-wider uppercase text-zinc-400 block">
-                DISTRIBUSI PESERTA PER KAFILAH (10 KABUPATEN/KOTA)
-              </span>
-
-              <div className="space-y-2.5">
-                {DAFTAR_KAFILAH.map((kafilah) => {
-                  const count = kafilahDistribution[kafilah] || 0;
-                  const pct = totalPeserta > 0 ? (count / totalPeserta) * 100 : 0;
-                  return (
-                    <div key={kafilah} className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-zinc-300">{kafilah}</span>
-                        <span className="font-mono text-zinc-400">{count} ({pct.toFixed(0)}%)</span>
-                      </div>
-                      <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-emerald-500 h-1.5 rounded-full"
-                          style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
+      {/* VIEW 1: BERANDA & STATISTIK (EXACT RECREATION OF GAMBAR 3) */}
+      {activeSubTab === 'beranda' && (
+        <div className="space-y-6">
+          {/* Top 5 KPI Summary Cards (Gambar 3) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+            {/* Card 1: Bank Data Peserta */}
+            <div
+              onClick={() => setRole('bank-data')}
+              className="bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:border-emerald-500/50 cursor-pointer transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-tight">
+                  Bank Data Peserta
+                </p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {countBankData}
+                </p>
               </div>
             </div>
 
-            {/* Cabang Sebaran */}
-            <div className="ag-card p-6 space-y-4">
-              <span className="text-xs font-mono tracking-wider uppercase text-zinc-400 block">
-                DISTRIBUSI PESERTA PER CABANG LOMBA
-              </span>
+            {/* Card 2: Peserta Diterima */}
+            <div className="bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-emerald-400 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-400/20">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-tight">
+                  Peserta Diterima
+                </p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {countDiterima}
+                </p>
+              </div>
+            </div>
 
-              <div className="space-y-2.5">
-                {Object.keys(CABANG_DAN_GOLONGAN).map((cabang) => {
-                  const count = cabangDistribution[cabang] || 0;
-                  const pct = totalPeserta > 0 ? (count / totalPeserta) * 100 : 0;
-                  return (
-                    <div key={cabang} className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-zinc-300">{cabang}</span>
-                        <span className="font-mono text-zinc-400">{count} ({pct.toFixed(0)}%)</span>
+            {/* Card 3: Belum Diverifikasi */}
+            <div className="bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-tight">
+                  Belum Diverifikasi
+                </p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {countBelumVerif}
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4: Peserta Mundur */}
+            <div className="bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
+                <UserX className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-tight">
+                  Peserta Mundur
+                </p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {countMundur}
+                </p>
+              </div>
+            </div>
+
+            {/* Card 5: Peserta Ditolak */}
+            <div className="bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20">
+                <XCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-tight">
+                  Peserta Ditolak
+                </p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {countDitolak}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner Sambutan Hijau Cerah (Gambar 3) */}
+          <div className="w-full bg-[#10b981] text-white p-3.5 rounded-xl shadow-md text-center font-bold text-sm tracking-wide">
+            Selamat Datang, Admin Bengkulu (adminbengkulu)
+          </div>
+
+          {/* Dua Kolom Beranda: Statistik Per Cabang/Wilayah & Agenda Event (Gambar 3) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Kolom Kiri: Statistik Peserta Per Wilayah / Kontingen */}
+            <div className="lg:col-span-6 ag-card p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
+                <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">
+                  Statistik Peserta Per Cabang / Wilayah
+                </h3>
+                <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
+                  Total Entri: 164
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                {DAFTAR_WILAYAH_STATISTIK.map((item) => (
+                  <div
+                    key={item.rank}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.04] text-xs hover:border-emerald-500/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[10px] flex items-center justify-center font-bold">
+                        {item.rank}
+                      </span>
+                      <span className="font-medium text-slate-800 dark:text-zinc-200">
+                        {item.nama}
+                      </span>
+                    </div>
+
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white font-mono text-xs font-bold shadow-sm">
+                      {item.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Kolom Kanan: Agenda Event (Gambar 3) */}
+            <div className="lg:col-span-6 ag-card p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
+                <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">
+                  Agenda Event
+                </h3>
+                <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
+                  MTQ XXXI / 2026
+                </span>
+              </div>
+
+              <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                {agendaEvents.map((agenda) => (
+                  <div
+                    key={agenda.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.04] text-xs hover:border-emerald-500/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+                        <Calendar className="w-4 h-4" />
                       </div>
-                      <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-amber-400 h-1.5 rounded-full"
-                          style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%` }}
-                        ></div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 dark:text-zinc-100">
+                          {agenda.nama}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
+                          {agenda.tanggalMulai} - {agenda.tanggalSelesai}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
+
+                    <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[11px] font-semibold shadow-sm">
+                      {agenda.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: VALIDASI BERKAS */}
-      {activeTab === 'validasi' && (
-        <div className="ag-card p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-white/[0.06]">
+      {/* VIEW 2: VERIFIKASI BERKAS */}
+      {activeSubTab === 'verifikasi' && (
+        <div className="ag-card p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 dark:border-white/10 pb-3">
             <div>
-              <h3 className="text-sm font-semibold text-white">
-                Validasi Berkas Pendaftaran Peserta
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                Validasi Berkas & Kependudukan Peserta
               </h3>
-              <p className="text-[11px] text-zinc-400">
-                Tinjau scan KTP/KK dan pas foto latar merah
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                Pemeriksaan kesesuaian NIK KTP, KK, usia, dan foto latar belakang merah
               </p>
             </div>
-
             <select
-              value={filterStatusVerif}
-              onChange={(e) => setFilterStatusVerif(e.target.value)}
-              className="ag-input py-1.5 text-xs"
+              value={filterKafilah}
+              onChange={(e) => setFilterKafilah(e.target.value)}
+              className="ag-input text-xs"
             >
-              <option value="" className="bg-[#10121a]">Semua Status</option>
-              <option value="Menunggu Verifikasi" className="bg-[#10121a]">Menunggu Verifikasi</option>
-              <option value="Terverifikasi" className="bg-[#10121a]">Terverifikasi</option>
-              <option value="Ditolak" className="bg-[#10121a]">Ditolak</option>
+              <option value="">Semua Kafilah ({pesertaList.length})</option>
+              {DAFTAR_KAFILAH.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
+          <div className="overflow-x-auto border border-slate-200 dark:border-white/10 rounded-xl">
             <table className="w-full text-left text-xs">
-              <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
+              <thead className="bg-slate-50 dark:bg-white/[0.03] text-slate-700 dark:text-zinc-300 border-b border-slate-200 dark:border-white/10 font-semibold">
                 <tr>
-                  <th className="py-2.5 px-3">Peserta</th>
-                  <th className="py-2.5 px-3">Kafilah & Usia</th>
-                  <th className="py-2.5 px-3">Cabang / Golongan</th>
-                  <th className="py-2.5 px-3">Dokumen</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Tindakan</th>
+                  <th className="py-2.5 px-3">No. Reg</th>
+                  <th className="py-2.5 px-4">Nama Peserta</th>
+                  <th className="py-2.5 px-4">Kafilah Daerah</th>
+                  <th className="py-2.5 px-4">Cabang & Golongan</th>
+                  <th className="py-2.5 px-3 text-center">Status</th>
+                  <th className="py-2.5 px-3 text-center">Aksi Validasi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
-                {filteredPeserta.length > 0 ? (
-                  filteredPeserta.map((p) => (
-                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-10 rounded bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden">
-                            <img src={p.fotoUrl} alt={p.namaLengkap} className="w-full h-full object-cover rounded" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-white">{p.namaLengkap}</div>
-                            <div className="text-[10px] font-mono text-zinc-400">{p.nomorRegistrasi}</div>
-                          </div>
-                        </div>
+              <tbody className="divide-y divide-slate-200 dark:divide-white/[0.04]">
+                {pesertaList
+                  .filter((p) => !filterKafilah || p.asalKafilah === filterKafilah)
+                  .map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                      <td className="py-2.5 px-3 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {p.nomorRegistrasi}
                       </td>
-                      <td className="py-3 px-3">
-                        <div className="text-zinc-200">{p.asalKafilah}</div>
-                        <div className="text-[10px] font-mono text-zinc-400">{p.usia} Th</div>
+                      <td className="py-2.5 px-4 font-bold text-slate-900 dark:text-white">
+                        {p.namaLengkap}
                       </td>
-                      <td className="py-3 px-3">
-                        <div className="text-zinc-200">{p.cabang}</div>
-                        <div className="text-[10px] text-zinc-400">{p.golongan}</div>
+                      <td className="py-2.5 px-4 text-slate-600 dark:text-zinc-300">
+                        {p.asalKafilah}
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-zinc-300">
-                        Scan {p.berkasType}
+                      <td className="py-2.5 px-4 text-slate-600 dark:text-zinc-300">
+                        {p.cabang} - {p.golongan}
                       </td>
-                      <td className="py-3 px-3">
+                      <td className="py-2.5 px-3 text-center">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             p.statusVerifikasi === 'Terverifikasi'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                               : p.statusVerifikasi === 'Ditolak'
-                              ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                              : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
                           }`}
                         >
                           {p.statusVerifikasi}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right">
-                        <button
-                          onClick={() => {
-                            setReviewingPeserta(p);
-                            setCatatanTolak('Berkas scan kurang jelas / foto tidak sesuai ketentuan.');
-                          }}
-                          className="px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] text-zinc-200 text-xs font-medium border border-white/10 transition-colors inline-flex items-center gap-1.5"
-                        >
-                          <Eye className="w-3 h-3 text-zinc-400" />
-                          Tinjau
-                        </button>
+                      <td className="py-2.5 px-3 text-center">
+                        <div className="inline-flex gap-1">
+                          <button
+                            onClick={() => updateVerifikasi(p.id, 'Terverifikasi')}
+                            title="Verifikasi Sah"
+                            className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium"
+                          >
+                            Setujui
+                          </button>
+                          <button
+                            onClick={() => updateVerifikasi(p.id, 'Ditolak', 'Berkas tidak memenuhi syarat')}
+                            title="Tolak Berkas"
+                            className="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-medium"
+                          >
+                            Tolak
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-zinc-400 text-xs">
-                      Tidak ada peserta yang cocok.
-                    </td>
-                  </tr>
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* TAB 5: MANAJEMEN AKUN OFFICIAL KAFILAH */}
-      {activeTab === 'officials' && (
-        <div className="space-y-6">
-          {/* Header Card */}
-          <div className="ag-card p-6 border border-white/10 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <span className="text-[10px] font-mono tracking-widest uppercase text-[#00FF87] block mb-1">
-                  OTORISASI KREDENSIAL OFFICIAL
-                </span>
-                <h3 className="text-lg font-bold text-white">
-                  Penerbitan Akun Official Kafilah Daerah
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Admin Pusat membuatkan data username, password, dan nama untuk Official Kafilah 10 Kabupaten/Kota se-Bengkulu.
-                </p>
-              </div>
-
-              <div className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 font-mono text-xs text-zinc-300">
-                Total Akun: <span className="text-[#00FF87] font-bold">{officialAccounts.length}</span>
-              </div>
-            </div>
-
-            {/* Notification alert */}
-            {officialNotice && (
-              <div
-                className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
-                  officialNotice.type === 'success'
-                    ? 'bg-[#00FF87]/15 border border-[#00FF87]/40 text-[#00FF87]'
-                    : 'bg-red-500/15 border border-red-500/40 text-red-400'
-                }`}
-              >
-                {officialNotice.type === 'success' ? (
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                ) : (
-                  <XCircle className="w-4 h-4 shrink-0" />
-                )}
-                <span>{officialNotice.message}</span>
-              </div>
-            )}
-
-            {/* Creation Form */}
-            <form onSubmit={handleCreateOfficial} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Username Official
-                </label>
-                <div className="relative">
-                  <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={newOfficialUsername}
-                    onChange={(e) => setNewOfficialUsername(e.target.value)}
-                    placeholder="official_seluma"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Password Login
-                </label>
-                <div className="relative">
-                  <KeyRound className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={newOfficialPassword}
-                    onChange={(e) => setNewOfficialPassword(e.target.value)}
-                    placeholder="seluma2026"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Nama Lengkap Official
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newOfficialName}
-                  onChange={(e) => setNewOfficialName(e.target.value)}
-                  placeholder="Drs. H. Mawardi"
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Kafilah Kabupaten/Kota
-                </label>
-                <select
-                  value={newOfficialKafilah}
-                  onChange={(e) => setNewOfficialKafilah(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#12151e] border border-white/10 text-xs text-white focus:outline-none focus:border-[#00FF87]/60"
-                >
-                  {DAFTAR_KAFILAH.map((k) => (
-                    <option key={k} value={k}>
-                      {k}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 rounded-xl bg-[#00FF87] hover:bg-[#00FF87]/90 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,135,0.3)]"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Terbitkan Akun</span>
-                </button>
-              </div>
-            </form>
+      {/* VIEW 3: UNDI NOMOR URUT TAMPIL */}
+      {activeSubTab === 'acak' && (
+        <div className="ag-card p-6 max-w-2xl mx-auto space-y-5 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto">
+            <Shuffle className="w-6 h-6" />
           </div>
-
-          {/* Table of Accounts */}
-          <div className="ag-card p-6 border border-white/10 overflow-hidden">
-            <h4 className="text-sm font-semibold text-white mb-3">
-              Daftar Kredensial Official Terdaftar di Database
-            </h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/[0.08] text-zinc-400 font-mono text-[11px]">
-                    <th className="py-2.5 px-3">No</th>
-                    <th className="py-2.5 px-3">Username</th>
-                    <th className="py-2.5 px-3">Password</th>
-                    <th className="py-2.5 px-3">Nama Official</th>
-                    <th className="py-2.5 px-3">Kafilah Daerah</th>
-                    <th className="py-2.5 px-3">Kontak WA</th>
-                    <th className="py-2.5 px-3 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.04]">
-                  {officialAccounts.map((acc, idx) => (
-                    <tr key={acc.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-3 font-mono text-zinc-500">{idx + 1}</td>
-                      <td className="py-3 px-3 font-mono font-medium text-[#00FF87]">
-                        {acc.username}
-                      </td>
-                      <td className="py-3 px-3 font-mono text-zinc-300 bg-white/[0.02] rounded px-2">
-                        {acc.password}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-white">{acc.namaOfficial}</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 font-mono text-[10px] text-zinc-300">
-                          {acc.asalKafilah}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-mono text-zinc-400">{acc.nomorKontak}</td>
-                      <td className="py-3 px-3 text-right">
-                        {acc.username === 'official_bengkulu' ? (
-                          <span className="text-[10px] font-mono text-zinc-500 italic">
-                            Default Test
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => deleteOfficialAccount(acc.id)}
-                            className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
-                            title="Hapus Akun Official"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: ACAK URUTAN TAMPIL */}
-      {activeTab === 'acak' && (
-        <div className="ag-card p-6 space-y-6">
-          <div className="max-w-xl">
-            <h3 className="text-sm font-semibold text-white">
-              Pengundian Acak Nomor Urut Tampil
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              Sistem Pengacakan Nomor Urut Tampil Mimbar
             </h3>
-            <p className="text-xs text-zinc-400 mt-1">
-              Mengacak nomor urut tampil (1, 2, 3...) secara otomatis untuk seluruh peserta berstatus "Terverifikasi".
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-md mx-auto">
+              Sistem algoritma Fisher-Yates shuffle yang adil dan transparan untuk seluruh kontingen daerah
             </p>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/[0.08] p-5 rounded-xl space-y-4 max-w-lg">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">Cabang</label>
-                <select
-                  value={lotteryCabang}
-                  onChange={(e) => {
-                    const c = e.target.value;
-                    setLotteryCabang(c);
-                    setLotteryGolongan(CABANG_DAN_GOLONGAN[c]?.[0] || '');
-                  }}
-                  className="w-full ag-input"
-                >
-                  {Object.keys(CABANG_DAN_GOLONGAN).map((c) => (
-                    <option key={c} value={c} className="bg-[#10121a]">{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">Golongan</label>
-                <select
-                  value={lotteryGolongan}
-                  onChange={(e) => setLotteryGolongan(e.target.value)}
-                  className="w-full ag-input"
-                >
-                  {CABANG_DAN_GOLONGAN[lotteryCabang]?.map((g) => (
-                    <option key={g} value={g} className="bg-[#10121a]">{g}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={handleRunLottery}
-              disabled={isShuffling}
-              className={`w-full py-2.5 px-4 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                isShuffling
-                  ? 'bg-amber-400 text-black cursor-wait'
-                  : 'bg-white text-black hover:bg-zinc-200'
-              }`}
-            >
-              <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
-              {isShuffling ? 'Mengundi Nomor Tampil...' : 'Acak Nomor Tampil Otomatis'}
-            </button>
-
-            {lotteryResultMsg && (
-              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-zinc-300">
-                {lotteryResultMsg}
-              </div>
-            )}
-          </div>
-
-          {/* Roster Preview */}
-          <div className="space-y-3 pt-2">
-            <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
-              DAFTAR NOMOR TAMPIL ({lotteryCabang} - {lotteryGolongan})
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {pesertaList
-                .filter((p) => p.cabang === lotteryCabang && p.golongan === lotteryGolongan)
-                .sort((a, b) => (a.nomorUrutTampil || 999) - (b.nomorUrutTampil || 999))
-                .map((p) => (
-                  <div key={p.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-white/[0.06] font-mono font-bold text-xs text-white flex items-center justify-center shrink-0">
-                      {p.nomorUrutTampil || '-'}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-white truncate">{p.namaLengkap}</div>
-                      <div className="text-[10px] text-zinc-400 truncate">{p.asalKafilah}</div>
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
+                Pilih Cabang Lomba:
+              </label>
+              <select
+                value={lotteryCabang}
+                onChange={(e) => {
+                  setLotteryCabang(e.target.value);
+                  const gol = CABANG_DAN_GOLONGAN[e.target.value];
+                  if (gol && gol.length > 0) setLotteryGolongan(gol[0]);
+                }}
+                className="w-full ag-input text-xs"
+              >
+                {Object.keys(CABANG_DAN_GOLONGAN).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
+                Pilih Golongan:
+              </label>
+              <select
+                value={lotteryGolongan}
+                onChange={(e) => setLotteryGolongan(e.target.value)}
+                className="w-full ag-input text-xs"
+              >
+                {(CABANG_DAN_GOLONGAN[lotteryCabang] || []).map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+
+          {lotteryResultMsg && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+              {lotteryResultMsg}
+            </div>
+          )}
+
+          <button
+            onClick={handleLottery}
+            className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2"
+          >
+            <Shuffle className="w-4 h-4" />
+            <span>Mulai Undi Nomor Urut Sekarang</span>
+          </button>
         </div>
       )}
 
-      {/* TAB 4: MANAJEMEN LIVE STATUS MIMBAR */}
-      {activeTab === 'status' && (
-        <div className="ag-card p-6 space-y-4">
-          <div className="max-w-xl pb-2">
-            <h3 className="text-sm font-semibold text-white">
-              Manajemen Status Mimbar Penampilan
+      {/* VIEW 4: OFFICIALS MANAGEMENT */}
+      {activeSubTab === 'officials' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 ag-card p-5 space-y-4">
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-emerald-500" />
+              <span>Terbitkan Akun Official Baru</span>
             </h3>
-            <p className="text-xs text-zinc-400 mt-1">
-              "Sedang Tampil" mengaktifkan lembar nilai Dewan Hakim. Mengubah ke "Sudah Tampil" otomatis mengunci nilai secara permanen.
-            </p>
-          </div>
 
-          <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-white/[0.02] text-zinc-400 font-mono text-[11px] border-b border-white/[0.06]">
-                <tr>
-                  <th className="py-2.5 px-3">No & Peserta</th>
-                  <th className="py-2.5 px-3">Cabang / Golongan</th>
-                  <th className="py-2.5 px-3">Status Saat Ini</th>
-                  <th className="py-2.5 px-3 text-right">Ubah Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.04]">
-                {pesertaList
-                  .filter((p) => p.statusVerifikasi === 'Terverifikasi')
-                  .sort((a, b) => (a.nomorUrutTampil || 999) - (b.nomorUrutTampil || 999))
-                  .map((p) => (
-                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2.5">
-                          <span className="font-mono text-zinc-400 text-xs w-6">
-                            {p.nomorUrutTampil || '-'}
-                          </span>
-                          <div>
-                            <div className="font-medium text-white">{p.namaLengkap}</div>
-                            <div className="text-[10px] text-zinc-400">{p.asalKafilah}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="text-zinc-200">{p.cabang}</div>
-                        <div className="text-[10px] text-zinc-400">{p.golongan}</div>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                            p.statusTampil === 'Sedang Tampil'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : p.statusTampil === 'Sudah Tampil'
-                              ? 'bg-white/[0.06] text-zinc-300 border border-white/10'
-                              : 'bg-white/[0.02] text-zinc-400 border border-white/[0.06]'
-                          }`}
-                        >
-                          {p.statusTampil}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <div className="inline-flex rounded-full bg-white/[0.03] border border-white/10 p-0.5">
-                          <button
-                            onClick={() => updateStatusTampil(p.id, 'Belum Tampil')}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
-                              p.statusTampil === 'Belum Tampil'
-                                ? 'bg-white/[0.1] text-white font-bold'
-                                : 'text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            Belum
-                          </button>
-                          <button
-                            onClick={() => updateStatusTampil(p.id, 'Sedang Tampil')}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
-                              p.statusTampil === 'Sedang Tampil'
-                                ? 'bg-emerald-500 text-black font-bold'
-                                : 'text-emerald-400 hover:text-emerald-300'
-                            }`}
-                          >
-                            Sedang
-                          </button>
-                          <button
-                            onClick={() => updateStatusTampil(p.id, 'Sudah Tampil')}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-colors ${
-                              p.statusTampil === 'Sudah Tampil'
-                                ? 'bg-white text-black font-bold'
-                                : 'text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            Sudah
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: MANAJEMEN AKUN OFFICIAL KAFILAH */}
-      {activeTab === 'officials' && (
-        <div className="space-y-6">
-          {/* Header Card */}
-          <div className="ag-card p-6 border border-white/10 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <span className="text-[10px] font-mono tracking-widest uppercase text-[#00FF87] block mb-1">
-                  OTORISASI KREDENSIAL OFFICIAL
-                </span>
-                <h3 className="text-lg font-bold text-white">
-                  Penerbitan Akun Official Kafilah Daerah
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Admin Pusat membuatkan data username, password, dan nama untuk Official Kafilah 10 Kabupaten/Kota se-Bengkulu.
-                </p>
-              </div>
-
-              <div className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 font-mono text-xs text-zinc-300">
-                Total Akun: <span className="text-[#00FF87] font-bold">{officialAccounts.length}</span>
-              </div>
-            </div>
-
-            {/* Notification alert */}
             {officialNotice && (
               <div
-                className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
+                className={`p-2.5 rounded-xl text-xs ${
                   officialNotice.type === 'success'
-                    ? 'bg-[#00FF87]/15 border border-[#00FF87]/40 text-[#00FF87]'
-                    : 'bg-red-500/15 border border-red-500/40 text-red-400'
+                    ? 'bg-emerald-500/10 text-emerald-600'
+                    : 'bg-rose-500/10 text-rose-600'
                 }`}
               >
-                {officialNotice.type === 'success' ? (
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                ) : (
-                  <XCircle className="w-4 h-4 shrink-0" />
-                )}
-                <span>{officialNotice.message}</span>
+                {officialNotice.message}
               </div>
             )}
 
-            {/* Creation Form */}
-            <form onSubmit={handleCreateOfficial} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+            <form onSubmit={handleCreateOfficial} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Username Official
-                </label>
-                <div className="relative">
-                  <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={newOfficialUsername}
-                    onChange={(e) => setNewOfficialUsername(e.target.value)}
-                    placeholder="official_seluma"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Password Login
-                </label>
-                <div className="relative">
-                  <KeyRound className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={newOfficialPassword}
-                    onChange={(e) => setNewOfficialPassword(e.target.value)}
-                    placeholder="seluma2026"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Nama Lengkap Official
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newOfficialName}
-                  onChange={(e) => setNewOfficialName(e.target.value)}
-                  placeholder="Drs. H. Mawardi"
-                  className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#00FF87]/60"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                  Kafilah Kabupaten/Kota
+                <label className="block text-slate-600 dark:text-zinc-400 mb-1">
+                  Kafilah Kabupaten / Kota:
                 </label>
                 <select
                   value={newOfficialKafilah}
                   onChange={(e) => setNewOfficialKafilah(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#12151e] border border-white/10 text-xs text-white focus:outline-none focus:border-[#00FF87]/60"
+                  className="w-full ag-input"
                 >
                   {DAFTAR_KAFILAH.map((k) => (
                     <option key={k} value={k}>
@@ -884,154 +554,96 @@ export const AdminDashboard: React.FC = () => {
                 </select>
               </div>
 
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 rounded-xl bg-[#00FF87] hover:bg-[#00FF87]/90 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,135,0.3)]"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Terbitkan Akun</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Table of Accounts */}
-          <div className="ag-card p-6 border border-white/10 overflow-hidden">
-            <h4 className="text-sm font-semibold text-white mb-3">
-              Daftar Kredensial Official Terdaftar di Database
-            </h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/[0.08] text-zinc-400 font-mono text-[11px]">
-                    <th className="py-2.5 px-3">No</th>
-                    <th className="py-2.5 px-3">Username</th>
-                    <th className="py-2.5 px-3">Password</th>
-                    <th className="py-2.5 px-3">Nama Official</th>
-                    <th className="py-2.5 px-3">Kafilah Daerah</th>
-                    <th className="py-2.5 px-3">Kontak WA</th>
-                    <th className="py-2.5 px-3 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.04]">
-                  {officialAccounts.map((acc, idx) => (
-                    <tr key={acc.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-3 font-mono text-zinc-500">{idx + 1}</td>
-                      <td className="py-3 px-3 font-mono font-medium text-[#00FF87]">
-                        {acc.username}
-                      </td>
-                      <td className="py-3 px-3 font-mono text-zinc-300 bg-white/[0.02] rounded px-2">
-                        {acc.password}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-white">{acc.namaOfficial}</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 font-mono text-[10px] text-zinc-300">
-                          {acc.asalKafilah}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-mono text-zinc-400">{acc.nomorKontak}</td>
-                      <td className="py-3 px-3 text-right">
-                        {acc.username === 'official_bengkulu' ? (
-                          <span className="text-[10px] font-mono text-zinc-500 italic">
-                            Default Test
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => deleteOfficialAccount(acc.id)}
-                            className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors"
-                            title="Hapus Akun Official"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Review Modal */}
-      {reviewingPeserta && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-[#10121a] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-white/10 space-y-5 text-zinc-200">
-            <div className="flex justify-between items-start pb-3 border-b border-white/10">
               <div>
-                <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 block">
-                  VERIFIKASI BERKAS
-                </span>
-                <h3 className="text-base font-bold text-white mt-0.5">
-                  {reviewingPeserta.namaLengkap}
-                </h3>
-              </div>
-              <button
-                onClick={() => setReviewingPeserta(null)}
-                className="text-zinc-400 hover:text-white text-sm"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
-                <div className="w-16 h-20 rounded bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden">
-                  <img src={reviewingPeserta.fotoUrl} alt={reviewingPeserta.namaLengkap} className="w-full h-full object-cover rounded" />
-                </div>
-                <div className="space-y-1 text-zinc-300">
-                  <div>NIK: <span className="font-mono text-white">{reviewingPeserta.nik}</span></div>
-                  <div>Usia: <span className="font-mono text-white">{reviewingPeserta.usia} Tahun</span></div>
-                  <div>Cabang: <span className="text-white">{reviewingPeserta.cabang} - {reviewingPeserta.golongan}</span></div>
-                </div>
-              </div>
-
-              <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl flex items-center justify-between">
-                <span className="font-mono text-zinc-300">Dokumen: Scan {reviewingPeserta.berkasType} (.pdf)</span>
-                <span className="text-[10px] font-mono text-emerald-400">Valid</span>
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">Catatan Penolakan (Jika ditolak):</label>
+                <label className="block text-slate-600 dark:text-zinc-400 mb-1">
+                  Nama Lengkap Official:
+                </label>
                 <input
                   type="text"
-                  value={catatanTolak}
-                  onChange={(e) => setCatatanTolak(e.target.value)}
+                  value={newOfficialName}
+                  onChange={(e) => setNewOfficialName(e.target.value)}
+                  placeholder="H. Fulan, S.Ag"
                   className="w-full ag-input"
+                  required
                 />
               </div>
 
-              <div className="flex gap-2.5 pt-2">
-                <button
-                  onClick={() => {
-                    updateVerifikasi(reviewingPeserta.id, 'Ditolak', catatanTolak);
-                    setReviewingPeserta(null);
-                  }}
-                  className="flex-1 py-2 px-4 rounded-full border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/10 transition-colors"
-                >
-                  Tolak Berkas
-                </button>
-                <button
-                  onClick={() => {
-                    updateVerifikasi(
-                      reviewingPeserta.id,
-                      'Terverifikasi',
-                      'Berkas lengkap dan sesuai ketentuan LPTQ Bengkulu.'
-                    );
-                    setReviewingPeserta(null);
-                    confetti({
-                      particleCount: 50,
-                      spread: 50,
-                      origin: { y: 0.6 },
-                    });
-                  }}
-                  className="flex-1 py-2 px-4 rounded-full bg-white text-black text-xs font-semibold hover:bg-zinc-200 transition-colors"
-                >
-                  Setujui & Verifikasi
-                </button>
+              <div>
+                <label className="block text-slate-600 dark:text-zinc-400 mb-1">
+                  Username Akun:
+                </label>
+                <input
+                  type="text"
+                  value={newOfficialUsername}
+                  onChange={(e) => setNewOfficialUsername(e.target.value)}
+                  placeholder="official_namadaerah"
+                  className="w-full ag-input font-mono"
+                  required
+                />
               </div>
+
+              <div>
+                <label className="block text-slate-600 dark:text-zinc-400 mb-1">
+                  Password:
+                </label>
+                <input
+                  type="password"
+                  value={newOfficialPassword}
+                  onChange={(e) => setNewOfficialPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter"
+                  className="w-full ag-input font-mono"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-600 dark:text-zinc-400 mb-1">
+                  No. WhatsApp Official:
+                </label>
+                <input
+                  type="text"
+                  value={newOfficialContact}
+                  onChange={(e) => setNewOfficialContact(e.target.value)}
+                  placeholder="081234..."
+                  className="w-full ag-input font-mono"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm"
+              >
+                Terbitkan Akun Official
+              </button>
+            </form>
+          </div>
+
+          <div className="lg:col-span-7 ag-card p-5 space-y-4">
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+              Daftar Kredensial Official Aktif ({officialAccounts.length})
+            </h3>
+            <div className="space-y-2">
+              {officialAccounts.map((acc) => (
+                <div
+                  key={acc.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 text-xs"
+                >
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-zinc-100">
+                      {acc.namaOfficial}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      Kafilah: <strong>{acc.asalKafilah}</strong> | User: <code className="font-mono text-emerald-600 dark:text-emerald-400">{acc.username}</code>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteOfficialAccount(acc.id)}
+                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>

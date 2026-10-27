@@ -6,19 +6,33 @@ import {
   Users,
   UserCheck,
   ShieldCheck,
-  RotateCcw,
+  Database,
+  Award,
+  Sun,
+  Moon,
   Menu,
   X,
   ChevronDown,
   LogIn,
   LogOut,
-  User as UserIcon,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { role, setRole, currentUser, logout, getActivePesertaTampil, resetAllData } = useApp();
+  const {
+    role,
+    setRole,
+    currentUser,
+    logout,
+    theme,
+    toggleTheme,
+    getActivePesertaTampil,
+    resetAllData,
+  } = useApp();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const activePeserta = getActivePesertaTampil();
@@ -26,9 +40,19 @@ export const Navbar: React.FC = () => {
   const roleNavItems: { id: UserRole; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
       id: 'public',
-      label: 'Live Arena & Skor',
+      label: 'Portal e-MTQ',
       icon: <Radio className="w-3.5 h-3.5" />,
       badge: activePeserta.length > 0 ? `${activePeserta.length} LIVE` : undefined,
+    },
+    {
+      id: 'bank-data',
+      label: 'Bank Data (164)',
+      icon: <Database className="w-3.5 h-3.5 text-blue-500" />,
+    },
+    {
+      id: 'admin',
+      label: 'Beranda Admin',
+      icon: <ShieldCheck className="w-3.5 h-3.5" />,
     },
     {
       id: 'official',
@@ -36,149 +60,178 @@ export const Navbar: React.FC = () => {
       icon: <Users className="w-3.5 h-3.5" />,
     },
     {
-      id: 'peserta',
-      label: 'Pendaftaran Peserta',
-      icon: <UserCheck className="w-3.5 h-3.5" />,
+      id: 'escoring',
+      label: 'e-Scoring Hakim',
+      icon: <Award className="w-3.5 h-3.5 text-purple-500" />,
+    },
+  ];
+
+  const wilayahDropdowns = [
+    {
+      title: 'Sumatera',
+      items: [
+        'MTQ XXXVI Prov. Bengkulu',
+        'MTQ LV Tingkat Prov. Jambi',
+        'MTQ XLII Tingkat Kota Payakumbuh',
+        'MTQ Tingkat Kab. Agam Ke 42',
+        'MTQ XIII Tingkat Kab. Dharmasraya',
+      ],
     },
     {
-      id: 'admin',
-      label: 'Admin Pusat',
-      icon: <ShieldCheck className="w-3.5 h-3.5" />,
+      title: 'Jawa',
+      items: ['MTQ Tingkat Prov. Jawa Barat', 'MTQ Tingkat Prov. Jawa Timur', 'MTQ Prov. DKI Jakarta'],
+    },
+    {
+      title: 'Bali - NT',
+      items: ['MTQ Prov. Nusa Tenggara Barat', 'MTQ Prov. Bali'],
+    },
+    {
+      title: 'Kalimantan',
+      items: ['MTQ Prov. Kalimantan Timur', 'MTQ Prov. Kalimantan Selatan'],
     },
   ];
 
   return (
     <>
-      {/* Sleek Floating / Sticky Header */}
-      <header className="sticky top-0 z-40 bg-[#07080c]/80 backdrop-blur-xl border-b border-white/[0.08]">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#07080c]/85 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
-            {/* Brand Logo & Title */}
+            {/* Logo e-MTQ / SIMTQ Bengkulu (Gambar 5) */}
             <div
               onClick={() => setRole('public')}
-              className="flex items-center gap-3 cursor-pointer group"
+              className="flex items-center gap-3 cursor-pointer group select-none"
             >
-              <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center group-hover:border-emerald-500/40 transition-colors">
-                <span className="text-emerald-400 font-serif font-bold text-lg">م</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-bold font-serif text-xl shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                <span>م</span>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-white tracking-tight font-sans">
-                    SIMTQ
+                  <span className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+                    e-MTQ
                   </span>
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-bold">
                     BENGKULU
                   </span>
                 </div>
-                <span className="text-[11px] text-zinc-400 hidden sm:block font-normal">
-                  Sistem Pendaftaran & Penilaian Lomba MTQ
+                <span className="text-[11px] text-slate-500 dark:text-zinc-400 hidden sm:block font-normal">
+                  Kementerian Agama RI & LPTQ Provinsi
                 </span>
               </div>
             </div>
 
-            {/* Desktop Navigation - Minimalist Segmented Pill */}
-            <nav className="hidden lg:flex items-center gap-1 bg-white/[0.03] p-1 rounded-full border border-white/[0.08]">
-              {roleNavItems.map((item) => {
-                const isActive = role === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setRole(item.id)}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-white text-black font-semibold shadow-sm'
-                        : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <span className={isActive ? 'text-emerald-700' : 'text-zinc-400'}>
-                      {item.icon}
-                    </span>
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-[9px] font-mono px-1.5 py-0.2 rounded-full border border-emerald-500/30">
-                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+            {/* Desktop Center Navigation with Regional Dropdowns (Gambar 5) */}
+            <nav className="hidden xl:flex items-center gap-1 text-xs text-slate-600 dark:text-zinc-300 font-medium">
+              <button
+                onClick={() => setRole('public')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  role === 'public'
+                    ? 'text-emerald-600 dark:text-[#00FF87] font-bold'
+                    : 'hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Beranda
+              </button>
 
-            {/* Right Controls */}
-            <div className="flex items-center gap-2.5">
-              {/* Authentication Button or User Profile Badge */}
-              {currentUser ? (
-                <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-full pl-1.5 pr-2.5 py-1">
-                  {currentUser.photoURL ? (
-                    <img
-                      src={currentUser.photoURL}
-                      alt={currentUser.displayName || 'User'}
-                      className="w-6 h-6 rounded-full object-cover border border-[#00FF87]/50"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-[#00FF87]/20 border border-[#00FF87]/40 flex items-center justify-center text-[10px] text-[#00FF87] font-bold">
-                      {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
+              {wilayahDropdowns.map((w) => (
+                <div
+                  key={w.title}
+                  className="relative"
+                  onMouseEnter={() => setActiveDropdown(w.title)}
+                  onMouseLeave={() => setActiveDropdown(null)}
+                >
+                  <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <span>{w.title}</span>
+                    <ChevronDown className="w-3 h-3 opacity-60" />
+                  </button>
+
+                  {activeDropdown === w.title && (
+                    <div className="absolute top-full left-0 w-60 py-2 rounded-xl bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/10 shadow-xl z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                      {w.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setRole('public');
+                            setActiveDropdown(null);
+                          }}
+                          className="px-3.5 py-2 text-[11px] text-slate-700 dark:text-zinc-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer transition-colors"
+                        >
+                          {item}
+                        </div>
+                      ))}
                     </div>
                   )}
-                  <div className="hidden md:flex flex-col text-left">
-                    <span className="text-[11px] font-medium text-white leading-tight line-clamp-1 max-w-[110px]">
-                      {currentUser.displayName || currentUser.email?.split('@')[0]}
-                    </span>
-                    <span className="text-[9px] font-mono text-[#00FF87] uppercase leading-tight">
-                      {currentUser.role}
-                    </span>
-                  </div>
+                </div>
+              ))}
+
+              <button
+                onClick={() => setRole('bank-data')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  role === 'bank-data'
+                    ? 'text-emerald-600 dark:text-[#00FF87] font-bold'
+                    : 'hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Bank Data
+              </button>
+            </nav>
+
+            {/* Right Side: Theme Toggle, Pilih Event Pill, Auth, & Mobile Toggle */}
+            <div className="flex items-center gap-2.5">
+              {/* THEME TOGGLE: GELAP & TERANG (User Request) */}
+              <button
+                onClick={toggleTheme}
+                title={`Ganti ke Tema ${theme === 'dark' ? 'Terang (Light)' : 'Gelap (Dark)'}`}
+                className="w-9 h-9 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] text-slate-700 dark:text-zinc-200 hover:border-emerald-500/50 flex items-center justify-center transition-all shadow-sm"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+                ) : (
+                  <Moon className="w-4 h-4 text-emerald-600" />
+                )}
+              </button>
+
+              {/* Yellow Button "Pilih Event" (Gambar 5) */}
+              <button
+                onClick={() => {
+                  setRole('public');
+                  setTimeout(() => {
+                    document.getElementById('pilih-event')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#f59e0b] hover:bg-[#d97706] text-slate-950 font-bold text-xs shadow-md transition-all hover:scale-105"
+              >
+                <span>Pilih Event</span>
+              </button>
+
+              {/* Auth Portal Button */}
+              {currentUser ? (
+                <div className="flex items-center gap-2">
+                  <span className="hidden md:block text-xs font-semibold text-slate-700 dark:text-zinc-200 font-mono">
+                    Hi, {currentUser.displayName?.split(' ')[0]}
+                  </span>
                   <button
                     onClick={logout}
-                    title="Keluar Sesi (Logout)"
-                    className="p-1 rounded-full text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors ml-1"
+                    title="Keluar / Logout"
+                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 border border-rose-500/20 text-xs font-semibold transition-colors flex items-center gap-1"
                   >
                     <LogOut className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Keluar</span>
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setRole('auth')}
-                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    role === 'auth'
-                      ? 'bg-[#00FF87] text-black font-semibold shadow-[0_0_15px_rgba(0,255,135,0.4)]'
-                      : 'text-zinc-200 bg-white/[0.06] hover:bg-white/10 border border-white/10 hover:border-[#00FF87]/40'
-                  }`}
+                  className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
                 >
-                  <LogIn className="w-3.5 h-3.5 text-[#00FF87]" />
-                  <span>Masuk / Akun</span>
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Masuk</span>
                 </button>
               )}
 
-              <button
-                onClick={() => setShowResetConfirm(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 transition-colors"
-                title="Reset ke Mock Data Awal"
-              >
-                <RotateCcw className="w-3 h-3 text-zinc-400" />
-                <span className="font-mono text-[11px]">Reset Data</span>
-              </button>
-
-              {/* Mobile Role Dropdown */}
-              <div className="relative lg:hidden">
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="text-xs bg-[#10121a] text-zinc-200 border border-white/10 rounded-full px-3 py-1.5 pr-7 appearance-none focus:outline-none"
-                >
-                  <option value="public">🌐 Publik / Skor</option>
-                  <option value="auth">🔐 Masuk / Akun</option>
-                  <option value="official">🏢 1. Official</option>
-                  <option value="peserta">👤 2. Peserta</option>
-                  <option value="admin">⚙️ 3. Admin</option>
-                </select>
-                <ChevronDown className="w-3 h-3 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-
+              {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] lg:hidden"
+                className="xl:hidden p-2 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -186,115 +239,66 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-white/[0.08] bg-[#0c0e14] px-4 py-4 space-y-1.5">
-            <p className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase mb-2">
-              PILIH MODUL / PERAN:
-            </p>
-            {roleNavItems.map((item) => {
-              const isActive = role === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setRole(item.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-white text-black font-semibold'
-                      : 'text-zinc-300 hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && (
-                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded-full border border-emerald-500/30">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Mobile Auth Button */}
-            <div className="pt-2 border-t border-white/[0.08] mt-2">
-              {currentUser ? (
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04]">
-                  <div className="flex items-center gap-2">
-                    {currentUser.photoURL ? (
-                      <img
-                        src={currentUser.photoURL}
-                        alt="User"
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-[#00FF87]/20 text-[#00FF87] flex items-center justify-center text-xs font-bold">
-                        {currentUser.displayName ? currentUser.displayName[0] : 'U'}
-                      </div>
-                    )}
-                    <span className="text-xs text-white">{currentUser.displayName}</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="text-xs text-red-400 hover:text-red-300 font-mono"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setRole('auth');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#00FF87]/15 border border-[#00FF87]/30 text-[#00FF87] text-xs font-semibold"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Masuk / Daftar Akun SIMTQ</span>
-                </button>
-              )}
-            </div>
+          <div className="xl:hidden border-t border-slate-200 dark:border-white/10 p-4 space-y-2 bg-white dark:bg-[#07080c]">
+            <button
+              onClick={() => {
+                setRole('public');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              Beranda & Portal Event
+            </button>
+            <button
+              onClick={() => {
+                setRole('bank-data');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              Bank Data Peserta
+            </button>
+            <button
+              onClick={() => {
+                setRole('admin');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              Beranda Admin Pusat
+            </button>
+            <button
+              onClick={() => {
+                setRole('official');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              Official Kafilah
+            </button>
+            <button
+              onClick={() => {
+                setRole('escoring');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              e-Scoring Dewan Hakim
+            </button>
+            <button
+              onClick={() => {
+                setRole('peserta');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+            >
+              Pendaftaran Peserta
+            </button>
           </div>
         )}
       </header>
-
-      {/* Reset Confirmation Modal */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-[#10121a] rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-white/10">
-            <h3 className="text-base font-semibold text-white mb-2">
-              Reset Semua Data Demo?
-            </h3>
-            <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-              Tindakan ini akan mengembalikan data calon peserta, berkas, status mimbar, dan lembar nilai ke kondisi awal simulasi.
-            </p>
-            <div className="flex gap-2.5">
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="flex-1 px-4 py-2 rounded-full border border-white/10 text-zinc-300 font-medium text-xs hover:bg-white/[0.06] transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={() => {
-                  resetAllData();
-                  setShowResetConfirm(false);
-                }}
-                className="flex-1 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors"
-              >
-                Ya, Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
