@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
 import { CABANG_DAN_GOLONGAN, DAFTAR_KAFILAH, MIMBAR_LIST } from '../../data/constants';
+import { LiveParticipantCard3D } from './LiveParticipantCard3D';
 import {
   Radio,
-  Clock,
-  MapPin,
   Filter,
   Lock,
   ChevronRight,
   Search,
   Volume2,
+  Sparkles,
 } from 'lucide-react';
 
 export const PublicHome: React.FC = () => {
@@ -38,67 +39,148 @@ export const PublicHome: React.FC = () => {
     );
   });
 
+  // Staggered words for Feature 4: "Musabaqah Tilawatil Qur'an Provinsi Bengkulu"
+  const line1Words = ['Musabaqah', 'Tilawatil', "Qur'an"];
+  const line2Words = ['Provinsi', 'Bengkulu'];
+
   return (
-    <div className="space-y-20 pb-20">
-      {/* 1. Antigravity Hero Section: Ultra-clean, spacious, minimal */}
-      <section className="relative pt-12 pb-8 text-center max-w-4xl mx-auto space-y-6">
+    <div className="space-y-24 pb-24">
+      {/* 1. HERO SECTION WITH QUANTUM ZERO-GRAVITY STAGGERED REVEAL & INTERACTIVE BUTTONS */}
+      <section className="relative pt-12 sm:pt-16 pb-6 text-center max-w-4xl mx-auto space-y-7">
         {/* Subtle Ambient Radial Lighting */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/[0.07] blur-[120px] rounded-full pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[#00FF87]/[0.06] blur-[130px] rounded-full pointer-events-none -z-10" />
 
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-zinc-300 text-[11px] font-mono tracking-wider uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        {/* Overline Tag with smooth fade-in */}
+        <motion.div
+          initial={{ opacity: 0, y: -15, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-zinc-300 text-[11px] font-mono tracking-wider uppercase backdrop-blur-md"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] shadow-[0_0_8px_#00FF87]" />
           <span>MTQ Ke-XXXVI Tingkat Provinsi Bengkulu</span>
-        </div>
+        </motion.div>
 
-        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.15]">
-          Musabaqah Tilawatil Qur'an <br />
-          <span className="bg-gradient-to-r from-zinc-100 via-zinc-400 to-zinc-500 bg-clip-text text-transparent">
-            Provinsi Bengkulu
-          </span>
+        {/* FEATURE 4: STAGGERED REVEAL ON LOAD WITH BLUR FILTER (10px -> 0px) */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.12]">
+          {/* Line 1: Musabaqah Tilawatil Qur'an */}
+          <div className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4">
+            {line1Words.map((word, index) => (
+              <motion.span
+                key={word}
+                initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{
+                  duration: 0.8,
+                  delay: index * 0.12,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </div>
+
+          {/* Line 2: Provinsi Bengkulu (with refined gradient) */}
+          <div className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4 mt-1">
+            {line2Words.map((word, index) => (
+              <motion.span
+                key={word}
+                initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.36 + index * 0.14,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block bg-gradient-to-r from-zinc-100 via-zinc-300 to-[#00FF87] bg-clip-text text-transparent"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </div>
         </h1>
 
-        <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
-          Portal terpadu pendaftaran kafilah 10 kabupaten/kota, verifikasi berkas berjenjang, pengundian nomor urut tampil, dan sistem penilaian real-time Dewan Hakim.
-        </p>
+        {/* Subtitle with soft fade in */}
+        <motion.p
+          initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal"
+        >
+          Portal terpadu pendaftaran kafilah 10 kabupaten/kota, verifikasi berkas berjenjang, pengundian nomor urut tampil transparan, dan penilaian real-time Dewan Hakim.
+        </motion.p>
 
-        {/* Minimalist Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <button
+        {/* FEATURE 5: EFEK INTERACTIVE HOVER TOMBOL (LIFT UP, SCALE, NEON GREEN GLOW) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-wrap items-center justify-center gap-3.5 pt-3"
+        >
+          {/* Button 1: Live Arena Mimbar */}
+          <motion.button
+            whileHover={{
+              y: -4,
+              scale: 1.04,
+              boxShadow: '0 0 30px rgba(0, 255, 135, 0.45)',
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             onClick={() => {
               document.getElementById('live-arena')?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-semibold text-xs transition-colors"
           >
-            <Radio className="w-3.5 h-3.5 text-emerald-600" />
-            Live Arena Mimbar
-          </button>
+            <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>Live Arena Mimbar</span>
+          </motion.button>
 
-          <button
+          {/* Button 2: Papan Skor Terkini */}
+          <motion.button
+            whileHover={{
+              y: -4,
+              scale: 1.04,
+              boxShadow: '0 0 25px rgba(0, 255, 135, 0.35)',
+              borderColor: 'rgba(0, 255, 135, 0.6)',
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             onClick={() => {
               document.getElementById('papan-skor')?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.05] text-zinc-200 hover:text-white hover:bg-white/[0.1] font-medium text-xs border border-white/10 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/[0.05] text-zinc-200 hover:text-white hover:bg-white/[0.1] font-medium text-xs border border-white/10 backdrop-blur-md transition-colors"
           >
-            Papan Skor Terkini
-          </button>
+            <span>Papan Skor Terkini</span>
+          </motion.button>
 
-          <button
+          {/* Button 3: Registrasi Peserta */}
+          <motion.button
+            whileHover={{
+              y: -4,
+              scale: 1.04,
+              boxShadow: '0 0 25px rgba(0, 255, 135, 0.35)',
+              borderColor: 'rgba(0, 255, 135, 0.6)',
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             onClick={() => setRole('peserta')}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-zinc-400 hover:text-zinc-200 font-medium text-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-white/[0.03] text-zinc-300 hover:text-white border border-white/[0.08] font-medium text-xs backdrop-blur-md transition-colors"
           >
-            Registrasi Peserta
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+            <span>Registrasi Peserta</span>
+            <ChevronRight className="w-3.5 h-3.5 text-[#00FF87]" />
+          </motion.button>
+        </motion.div>
       </section>
 
-      {/* 2. LIVE DASHBOARD ARENA: PESERTA SEDANG TAMPIL */}
+      {/* 2. LIVE DASHBOARD ARENA WITH FEATURE 3: 3D TILT EFFECT & GLASS SHEEN */}
       <section id="live-arena" className="scroll-mt-28 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[11px] font-mono tracking-widest uppercase text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse shadow-[0_0_8px_#00FF87]" />
+              <span className="text-[11px] font-mono tracking-widest uppercase text-[#00FF87]">
                 PANGGUNG UTAMA / LIVE ARENA
               </span>
             </div>
@@ -107,106 +189,36 @@ export const PublicHome: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/[0.02] border border-white/10 px-3 py-1.5 rounded-full">
-            <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Audio & Penilaian Majelis Aktif</span>
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/[0.02] border border-white/10 px-3.5 py-1.5 rounded-full">
+            <Volume2 className="w-3.5 h-3.5 text-[#00FF87]" />
+            <span>Audio & Penilaian Majelis Aktif (60fps Interactive)</span>
           </div>
         </div>
 
         {activePesertaList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {activePesertaList.map((peserta) => (
-              <div
+              <LiveParticipantCard3D
                 key={peserta.id}
-                className="ag-card-glow p-6 sm:p-7 relative overflow-hidden"
-              >
-                {/* Header Card Status */}
-                <div className="flex items-center justify-between pb-5 border-b border-white/[0.06] mb-6">
-                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    SEDANG TAMPIL
-                  </div>
-
-                  <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-400">
-                    <Clock className="w-3 h-3 text-zinc-500" />
-                    <span>{peserta.waktuMulaiTampil || 'Sesi Sedang Berlangsung'}</span>
-                  </div>
-                </div>
-
-                {/* Participant Content */}
-                <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                  {/* Photo with red background frame */}
-                  <div className="relative shrink-0">
-                    <div className="w-24 h-32 rounded-xl bg-red-600/90 p-1 border border-white/20 shadow-lg overflow-hidden">
-                      <img
-                        src={peserta.fotoUrl}
-                        alt={peserta.namaLengkap}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                    <span className="absolute -bottom-2 -right-1 text-[9px] font-mono tracking-wider bg-black/90 text-zinc-300 border border-white/10 px-1.5 py-0.5 rounded-full">
-                      NO.{peserta.nomorUrutTampil || '-'}
-                    </span>
-                  </div>
-
-                  {/* Information Details */}
-                  <div className="flex-1 min-w-0 text-center sm:text-left space-y-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-white tracking-tight truncate">
-                        {peserta.namaLengkap}
-                      </h3>
-                      <p className="text-xs text-emerald-400 font-medium mt-0.5">
-                        Kafilah {peserta.asalKafilah}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs font-mono bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
-                      <div>
-                        <span className="text-[10px] text-zinc-500 block uppercase">Cabang</span>
-                        <span className="text-zinc-200 truncate block font-sans font-medium">{peserta.cabang}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-zinc-500 block uppercase">Golongan</span>
-                        <span className="text-zinc-200 truncate block font-sans font-medium">{peserta.golongan}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-zinc-400">
-                      <MapPin className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                      <span className="truncate">{peserta.mimbar || 'Mimbar Utama MTQ Bengkulu'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Footnote */}
-                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-zinc-500">
-                    ID: {peserta.nomorRegistrasi}
-                  </span>
-                  <button
-                    onClick={() => setRole('juri')}
-                    className="text-xs text-zinc-300 hover:text-white font-medium hover:underline flex items-center gap-1"
-                  >
-                    Buka Lembar Penilaian Juri →
-                  </button>
-                </div>
-              </div>
+                peserta={peserta}
+                onOpenJuri={() => setRole('juri')}
+              />
             ))}
           </div>
         ) : (
-          <div className="ag-card p-10 text-center max-w-lg mx-auto space-y-3">
+          <div className="ag-card p-12 text-center max-w-lg mx-auto space-y-3">
             <Radio className="w-8 h-8 text-zinc-600 mx-auto" />
             <h4 className="text-sm font-semibold text-zinc-300">
               Tidak Ada Peserta di Atas Mimbar
             </h4>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              Majelis Hakim sedang menunggu panggilan sesi berikutnya oleh Admin Pusat atau mimbar sedang dalam jeda.
+              Majelis Hakim sedang menunggu panggilan sesi berikutnya oleh Admin Pusat atau mimbar sedang dalam jeda istirahat.
             </p>
           </div>
         )}
       </section>
 
-      {/* 3. PAPAN SKOR / LEADERBOARD INTERAKTIF (TERURUT NILAI TERTINGGI KE TERENDAH) */}
+      {/* 3. PAPAN SKOR / LEADERBOARD (TERURUT NILAI TERTINGGI KE TERENDAH) */}
       <section id="papan-skor" className="scroll-mt-28 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
           <div>
@@ -220,8 +232,9 @@ export const PublicHome: React.FC = () => {
             </h2>
           </div>
 
-          <div className="text-xs font-mono text-zinc-400">
-            Terurut Otomatis Berdasarkan Nilai Tertinggi
+          <div className="text-xs font-mono text-zinc-400 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>Urutan Real-Time Nilai Tertinggi</span>
           </div>
         </div>
 
@@ -304,9 +317,10 @@ export const PublicHome: React.FC = () => {
               const isTop3 = item.peringkat === 3;
 
               return (
-                <div
+                <motion.div
                   key={item.peserta.id}
-                  className="p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                  className="p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors"
                 >
                   {/* Left: Rank, Photo, Name & Kafilah */}
                   <div className="flex items-center gap-4 min-w-0">
@@ -328,7 +342,7 @@ export const PublicHome: React.FC = () => {
                     </div>
 
                     {/* Photo with red background */}
-                    <div className="w-11 h-14 rounded-lg bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden">
+                    <div className="w-11 h-14 rounded-lg bg-red-600/90 p-0.5 border border-white/20 shrink-0 overflow-hidden shadow">
                       <img
                         src={item.peserta.fotoUrl}
                         alt={item.peserta.namaLengkap}
@@ -384,13 +398,13 @@ export const PublicHome: React.FC = () => {
                       <span className="text-2xl font-bold font-mono tracking-tight text-white">
                         {item.nilaiAkhir.toFixed(2)}
                       </span>
-                      <div className="flex items-center justify-end gap-1 text-[10px] font-mono text-emerald-400/80 mt-0.5">
+                      <div className="flex items-center justify-end gap-1 text-[10px] font-mono text-[#00FF87]/80 mt-0.5">
                         <Lock className="w-2.5 h-2.5" />
                         <span>Sah & Terkunci</span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })
           ) : (
@@ -408,15 +422,20 @@ export const PublicHome: React.FC = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {MIMBAR_LIST.slice(0, 3).map((mimbar, idx) => (
-            <div key={mimbar} className="ag-card p-4 space-y-2">
+            <motion.div
+              key={mimbar}
+              whileHover={{ y: -3, borderColor: 'rgba(0, 255, 135, 0.3)' }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+              className="ag-card p-4 space-y-2 cursor-default"
+            >
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
                 <span>VENUE 0{idx + 1}</span>
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-emerald-400"></span> Aktif
+                <span className="text-[#00FF87] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] animate-pulse" /> Aktif
                 </span>
               </div>
               <h4 className="text-xs font-semibold text-zinc-200">{mimbar}</h4>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>

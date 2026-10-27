@@ -2,22 +2,28 @@ import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
+import { CustomCursor } from './components/common/CustomCursor';
+import { MouseSpotlight } from './components/common/MouseSpotlight';
 import { PublicHome } from './components/public/PublicHome';
 import { OfficialDashboard } from './components/official/OfficialDashboard';
 import { PesertaRegistration } from './components/peserta/PesertaRegistration';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { JuriDashboard } from './components/juri/JuriDashboard';
-import type { UserRole } from './types';
 import { Radio, Users, UserCheck, ShieldCheck, Gavel } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { role, setRole } = useApp();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-100 relative selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Background Subtle Dot Grid & Ambient Lighting */}
-      <div className="fixed inset-0 antigravity-grid opacity-60 pointer-events-none"></div>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-500/[0.04] blur-[140px] rounded-full pointer-events-none"></div>
+    <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-100 relative selection:bg-[#00FF87]/20 selection:text-[#00FF87] overflow-x-hidden">
+      {/* Feature 1: Super Smooth Custom Cursor with Damping Lag */}
+      <CustomCursor />
+
+      {/* Feature 2: Interactive Mouse-Tracking Background Spotlight */}
+      <MouseSpotlight />
+
+      {/* Background Subtle Dot Grid */}
+      <div className="fixed inset-0 antigravity-grid opacity-50 pointer-events-none z-0" />
 
       {/* Main Navbar */}
       <Navbar />
@@ -26,7 +32,7 @@ const MainContent: React.FC = () => {
       <div className="relative z-10 border-b border-white/[0.06] bg-[#07080c]/60 backdrop-blur-md py-2.5 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-400 uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] shadow-[0_0_8px_#00FF87]" />
             <span>SIMULASI 4 PERAN PENGGUNA:</span>
           </div>
 
