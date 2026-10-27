@@ -350,20 +350,10 @@ export const PublicHome: React.FC = () => {
 
                   {/* Right: Scores breakdown & Final Score */}
                   <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-white/[0.04]">
-                    {item.penilaian && (
-                      <div className="hidden sm:flex items-center gap-3 text-right font-mono text-[11px] text-zinc-400">
-                        <div>
-                          <span className="text-[9px] text-zinc-400 block uppercase">B1</span>
-                          <span>{item.penilaian.komponen.bidang1.nilai.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-zinc-400 block uppercase">B2</span>
-                          <span>{item.penilaian.komponen.bidang2.nilai.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-zinc-400 block uppercase">B3</span>
-                          <span>{item.penilaian.komponen.bidang3.nilai.toFixed(1)}</span>
-                        </div>
+                    {item.penilaian?.catatan && (
+                      <div className="hidden sm:block text-right font-mono text-[10px] text-zinc-400 max-w-[220px] truncate">
+                        <span className="text-zinc-500 block text-[9px] uppercase">Catatan Lomba:</span>
+                        <span className="text-zinc-300 italic">"{item.penilaian.catatan}"</span>
                       </div>
                     )}
 
