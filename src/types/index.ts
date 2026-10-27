@@ -1,4 +1,15 @@
-export type UserRole = 'public' | 'official' | 'peserta' | 'admin' | 'juri';
+export type UserRole = 'public' | 'official' | 'peserta' | 'admin' | 'juri' | 'auth';
+
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL?: string | null;
+  role: UserRole;
+  asalKafilah?: string;
+  provider: 'google' | 'password' | 'demo';
+  createdAt: string;
+}
 
 export type StatusVerifikasi = 'Menunggu Verifikasi' | 'Terverifikasi' | 'Ditolak';
 export type StatusTampil = 'Belum Tampil' | 'Sedang Tampil' | 'Sudah Tampil';

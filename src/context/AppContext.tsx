@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   UserRole,
+  AuthUser,
   CalonPesertaOfficial,
   Peserta,
   PenilaianPeserta,
@@ -13,6 +14,9 @@ import { initialCalonPeserta, initialPeserta, initialPenilaian } from '../data/m
 interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  currentUser: AuthUser | null;
+  setCurrentUser: (user: AuthUser | null) => void;
+  logout: () => void;
   calonPesertaList: CalonPesertaOfficial[];
   pesertaList: Peserta[];
   penilaianList: PenilaianPeserta[];
@@ -66,6 +70,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
   ROLE: 'simtq_role_bengkulu_v1',
+  AUTH_USER: 'simtq_auth_user_v1',
   CALON: 'simtq_calon_peserta_v1',
   PESERTA: 'simtq_peserta_v1',
   PENILAIAN: 'simtq_penilaian_v1',
@@ -75,6 +80,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [role, setRoleState] = useState<UserRole>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ROLE);
     return (saved as UserRole) || 'public';
+  });
+
+  const [currentUser, setCurrentUserState] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse auth user data', e);
+      }
+    }
+    return null;
   });
 
   const [calonPesertaList, setCalonPesertaList] = useState<CalonPesertaOfficial[]>(() => {
@@ -119,6 +136,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [role]);
 
   useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CALON, JSON.stringify(calonPesertaList));
   }, [calonPesertaList]);
 
@@ -132,6 +157,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setRole = (newRole: UserRole) => {
     setRoleState(newRole);
+  };
+
+  const setCurrentUser = (user: AuthUser | null) => {
+    setCurrentUserState(user);
+    if (user?.role && user.role !== 'auth') {
+      setRoleState(user.role);
+    }
+  };
+
+  const logout = () => {
+    setCurrentUserState(null);
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
   };
 
   // Official: Pra-Pendaftaran
@@ -436,6 +473,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem(STORAGE_KEYS.PESERTA);
     localStorage.removeItem(STORAGE_KEYS.PENILAIAN);
     localStorage.removeItem(STORAGE_KEYS.ROLE);
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    setCurrentUserState(null);
     setCalonPesertaList(initialCalonPeserta);
     setPesertaList(initialPeserta);
     setPenilaianList(initialPenilaian);
@@ -447,6 +486,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         role,
         setRole,
+        currentUser,
+        setCurrentUser,
+        logout,
         calonPesertaList,
         pesertaList,
         penilaianList,

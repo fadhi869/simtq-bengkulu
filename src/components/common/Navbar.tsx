@@ -11,10 +11,14 @@ import {
   Menu,
   X,
   ChevronDown,
+  LogIn,
+  LogOut,
+  User as UserIcon,
+  Sparkles,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { role, setRole, getActivePesertaTampil, resetAllData } = useApp();
+  const { role, setRole, currentUser, logout, getActivePesertaTampil, resetAllData } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -109,6 +113,50 @@ export const Navbar: React.FC = () => {
 
             {/* Right Controls */}
             <div className="flex items-center gap-2.5">
+              {/* Authentication Button or User Profile Badge */}
+              {currentUser ? (
+                <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-full pl-1.5 pr-2.5 py-1">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt={currentUser.displayName || 'User'}
+                      className="w-6 h-6 rounded-full object-cover border border-[#00FF87]/50"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[#00FF87]/20 border border-[#00FF87]/40 flex items-center justify-center text-[10px] text-[#00FF87] font-bold">
+                      {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
+                  <div className="hidden md:flex flex-col text-left">
+                    <span className="text-[11px] font-medium text-white leading-tight line-clamp-1 max-w-[110px]">
+                      {currentUser.displayName || currentUser.email?.split('@')[0]}
+                    </span>
+                    <span className="text-[9px] font-mono text-[#00FF87] uppercase leading-tight">
+                      {currentUser.role}
+                    </span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    title="Keluar Sesi (Logout)"
+                    className="p-1 rounded-full text-zinc-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors ml-1"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setRole('auth')}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    role === 'auth'
+                      ? 'bg-[#00FF87] text-black font-semibold shadow-[0_0_15px_rgba(0,255,135,0.4)]'
+                      : 'text-zinc-200 bg-white/[0.06] hover:bg-white/10 border border-white/10 hover:border-[#00FF87]/40'
+                  }`}
+                >
+                  <LogIn className="w-3.5 h-3.5 text-[#00FF87]" />
+                  <span>Masuk / Akun</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowResetConfirm(true)}
                 className="hidden sm:inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 transition-colors"
@@ -126,6 +174,7 @@ export const Navbar: React.FC = () => {
                   className="text-xs bg-[#10121a] text-zinc-200 border border-white/10 rounded-full px-3 py-1.5 pr-7 appearance-none focus:outline-none"
                 >
                   <option value="public">🌐 Publik / Skor</option>
+                  <option value="auth">🔐 Masuk / Akun</option>
                   <option value="official">🏢 1. Official</option>
                   <option value="peserta">👤 2. Peserta</option>
                   <option value="admin">⚙️ 3. Admin</option>
@@ -177,6 +226,48 @@ export const Navbar: React.FC = () => {
                 </button>
               );
             })}
+
+            {/* Mobile Auth Button */}
+            <div className="pt-2 border-t border-white/[0.08] mt-2">
+              {currentUser ? (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04]">
+                  <div className="flex items-center gap-2">
+                    {currentUser.photoURL ? (
+                      <img
+                        src={currentUser.photoURL}
+                        alt="User"
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-[#00FF87]/20 text-[#00FF87] flex items-center justify-center text-xs font-bold">
+                        {currentUser.displayName ? currentUser.displayName[0] : 'U'}
+                      </div>
+                    )}
+                    <span className="text-xs text-white">{currentUser.displayName}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-xs text-red-400 hover:text-red-300 font-mono"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setRole('auth');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#00FF87]/15 border border-[#00FF87]/30 text-[#00FF87] text-xs font-semibold"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Masuk / Daftar Akun SIMTQ</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
       </header>

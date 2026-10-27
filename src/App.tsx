@@ -9,7 +9,8 @@ import { OfficialDashboard } from './components/official/OfficialDashboard';
 import { PesertaRegistration } from './components/peserta/PesertaRegistration';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { JuriDashboard } from './components/juri/JuriDashboard';
-import { Radio, Users, UserCheck, ShieldCheck, Gavel } from 'lucide-react';
+import { AuthPage } from './components/auth/AuthPage';
+import { Radio, Users, UserCheck, ShieldCheck, Gavel, LogIn } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { role, setRole } = useApp();
@@ -92,6 +93,17 @@ const MainContent: React.FC = () => {
               <Gavel className="w-3 h-3 text-zinc-400" />
               4. Dewan Hakim
             </button>
+            <button
+              onClick={() => setRole('auth')}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                role === 'auth'
+                  ? 'bg-[#00FF87] text-black font-semibold shadow-[0_0_12px_rgba(0,255,135,0.4)]'
+                  : 'text-zinc-400 hover:text-[#00FF87] hover:bg-white/[0.04]'
+              }`}
+            >
+              <LogIn className="w-3 h-3 text-[#00FF87]" />
+              5. Masuk / Daftar (Auth)
+            </button>
           </div>
         </div>
       </div>
@@ -99,6 +111,7 @@ const MainContent: React.FC = () => {
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {role === 'public' && <PublicHome />}
+        {role === 'auth' && <AuthPage />}
         {role === 'official' && <OfficialDashboard />}
         {role === 'peserta' && <PesertaRegistration />}
         {role === 'admin' && <AdminDashboard />}

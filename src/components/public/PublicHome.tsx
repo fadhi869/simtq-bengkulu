@@ -12,6 +12,7 @@ import {
   Search,
   Volume2,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 
 export const PublicHome: React.FC = () => {
@@ -129,6 +130,23 @@ export const PublicHome: React.FC = () => {
           >
             <span>Registrasi Peserta</span>
             <ChevronRight className="w-3.5 h-3.5 text-[#00FF87]" />
+          </motion.button>
+
+          {/* Button 4: Masuk / Google Auth */}
+          <motion.button
+            whileHover={{
+              y: -4,
+              scale: 1.04,
+              boxShadow: '0 0 25px rgba(0, 255, 135, 0.45)',
+              borderColor: 'rgba(0, 255, 135, 0.7)',
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            onClick={() => setRole('auth')}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#00FF87]/10 hover:bg-[#00FF87]/20 text-[#00FF87] border border-[#00FF87]/30 font-semibold text-xs backdrop-blur-md transition-colors shadow-[0_0_15px_rgba(0,255,135,0.15)]"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Portal Masuk / Google</span>
           </motion.button>
         </motion.div>
       </section>
